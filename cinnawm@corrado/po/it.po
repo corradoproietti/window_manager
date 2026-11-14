@@ -1,0 +1,1006 @@
+# Italian translation for CinnaWM.
+# This file is distributed under the same license as the CinnaWM package (GPL-3.0).
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: cinnawm@corrado 1.0.0\n"
+"POT-Creation-Date: 2026-11-14 18:00+0100\n"
+"PO-Revision-Date: 2026-11-14 18:00+0100\n"
+"Last-Translator: CinnaWM Contributors\n"
+"Language-Team: Italian <it@li.org>\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Settings..."
+msgstr "Impostazioni..."
+
+msgid "CinnaWM Preferences"
+msgstr "Preferenze di CinnaWM"
+
+msgid "General & Gaps"
+msgstr "Generale & Margini"
+
+msgid "Global tiling settings, window spacing (gaps), mouse interactions, and active window border."
+msgstr "Parametri globali di tiling, spaziature tra finestre (gaps), interazioni mouse e bordo finestra attiva."
+
+msgid "Dwindle / BSP"
+msgstr "Dwindle / BSP"
+
+msgid "Recursive binary space partitioning (Hyprland / bspwm style). Each window splits the tile according to the selected mode."
+msgstr "Partizionamento binario ricorsivo dello spazio (stile Hyprland / bspwm). Ogni finestra divide il riquadro secondo la modalità scelta."
+
+msgid "Master & Stack"
+msgstr "Master & Stack"
+
+msgid "Primary Master area alongside a vertically stacked secondary column (dwm / XMonad style)."
+msgstr "Area principale (Master) affiancata da una colonna secondaria impilata (Stack), in stile dwm / XMonad."
+
+msgid "Centered Master"
+msgstr "Centered Master"
+
+msgid "Three-column layout designed for wide and ultrawide monitors: Master column in the center and two side Stack columns."
+msgstr "Layout a 3 colonne pensato per schermi ampi/ultrawide: colonna Master al centro e due colonne Stack laterali."
+
+msgid "Scrolling Columns"
+msgstr "Scrolling Columns"
+
+msgid "Infinite horizontal ribbon of full-height columns (Niri / PaperWM style) with automatic viewport scrolling."
+msgstr "Nastro orizzontale infinito di colonne a tutta altezza (stile Niri / PaperWM) con scorrimento automatico del viewport."
+
+msgid "Monocle / Zen"
+msgstr "Monocle / Zen"
+
+msgid "Deck of full-screen stacked windows or distraction-free centered Zen mode."
+msgstr "Mazzo di finestre sovrapposte a schermo intero o centrate in modalità Zen senza distrazioni."
+
+msgid "Balanced Grid"
+msgstr "Balanced Grid"
+
+msgid "Automatic balanced Rows × Columns grid to display all open windows with uniform dimensions."
+msgstr "Griglia bilanciata automatica Righe × Colonne per visualizzare tutte le finestre con dimensioni uniformi."
+
+msgid "Floating & Tools"
+msgstr "Floating & Strumenti"
+
+msgid "Free-floating windows, quick center parameters (Super+C), Quick Snap Grid (Super+G), and Scratchpad (Super+S)."
+msgstr "Finestre libere flottanti, parametri di centratura rapida (Super+C), Quick Snap Grid (Super+G) e Scratchpad (Super+S)."
+
+msgid "Auto"
+msgstr "Auto"
+
+msgid "✓ Active Layout"
+msgstr "✓ Layout Attivo"
+
+msgid "Activate Layout"
+msgstr "Attiva Layout"
+
+msgid "Default Layout"
+msgstr "Layout Predefinito"
+
+msgid "Layout applied by default to new workspaces and sessions."
+msgstr "Layout applicato di default ai nuovi spazi di lavoro e sessioni."
+
+msgid "Enable Auto-Tiling"
+msgstr "Auto-Tiling Attivo"
+
+msgid "Automatically tile normal windows opened on the active workspace."
+msgstr "Affianca automaticamente le finestre normali aperte sullo spazio di lavoro attivo."
+
+msgid "Inner Gap"
+msgstr "Margine Interno (Inner Gap)"
+
+msgid "Spacing in pixels between adjacent tiled windows."
+msgstr "Spazio in pixel tra due finestre affiancate."
+
+msgid "Outer Gap"
+msgstr "Margine Esterno (Outer Gap)"
+
+msgid "Distance in pixels between tiled windows and monitor or panel edges."
+msgstr "Distanza in pixel tra le finestre e i bordi del monitor o del pannello."
+
+msgid "Smart Gaps (No Gaps When Single)"
+msgstr "Smart Gaps (Nessun Margine se Finestra Singola)"
+
+msgid "Hide outer gaps and active border when only a single window is open on the monitor."
+msgstr "Nasconde i margini esterni e il bordo attivo quando sul monitor è aperta 1 sola finestra."
+
+msgid "Mouse Drag-to-Swap"
+msgstr "Trascina col Mouse per Scambiare (Drag-to-Swap)"
+
+msgid "Drag a window onto another tile to swap positions; hold Ctrl while dragging to snap to screen edges."
+msgstr "Trascinando una finestra sopra un'altra le scambia di posto; con Ctrl premuto esegue lo snap ai bordi."
+
+msgid "Live Shared Edge Resize"
+msgstr "Ridimensionamento Bordi Adiacenti (Live Edge Resize)"
+
+msgid "Resizing a tiled window border with the mouse automatically adjusts the adjacent window."
+msgstr "Ridimensionando il bordo di una finestra col mouse si adatta automaticamente anche la finestra adiacente."
+
+msgid "Active Window Border"
+msgstr "Bordo Finestra Attiva"
+
+msgid "Draw a colored highlight frame outside the currently focused window."
+msgstr "Disegna una cornice colorata esterna attorno alla finestra attualmente attiva."
+
+msgid "Active Border Width"
+msgstr "Spessore Bordo Attivo"
+
+msgid "Thickness in pixels of the outer highlight frame around the focused window."
+msgstr "Spessore in pixel della cornice esterna attorno alla finestra attiva."
+
+msgid "Active Border Corner Radius"
+msgstr "Raggio Angoli Bordo Attivo"
+
+msgid "Corner rounding radius in pixels for the active window highlight frame."
+msgstr "Raggio di arrotondamento in pixel per gli angoli della cornice attiva."
+
+msgid "On-Screen HUD / OSD Notifications"
+msgstr "Notifiche HUD / OSD a Schermo"
+
+msgid "Show an on-screen badge when switching layouts, rotating splits, or toggling the Scratchpad."
+msgstr "Mostra un badge informativo quando cambi layout, ruoti uno split o usi lo Scratchpad."
+
+msgid "Split Direction Mode"
+msgstr "Modalità di Divisione (Split Direction)"
+
+msgid "How the binary tree chooses whether to split a tile vertically (side-by-side) or horizontally (stacked)."
+msgstr "Come l'albero binario sceglie se dividere un riquadro in verticale (affiancato) o orizzontale (impilato)."
+
+msgid "Auto (W ≥ H)"
+msgstr "Auto (W ≥ H)"
+
+msgid "Spiral V/H"
+msgstr "Spirale V/H"
+
+msgid "Vertical"
+msgstr "Verticale"
+
+msgid "Horizontal"
+msgstr "Orizzontale"
+
+msgid "Default Split Ratio"
+msgstr "Rapporto di Divisione Iniziale"
+
+msgid "Percentage assigned to the first branch when a new split is created (50% = equal halves)."
+msgstr "Percentuale assegnata al primo ramo quando viene creato un nuovo split (50% = metà esatta)."
+
+msgid "New Window Insertion Point"
+msgstr "Punto di Inserimento Nuove Finestre"
+
+msgid "Which tree leaf is split when a new window is opened."
+msgstr "Quale nodo dell'albero viene diviso all'apertura di una nuova finestra."
+
+msgid "Focused Window"
+msgstr "Finestra Attiva"
+
+msgid "Spiral End"
+msgstr "Fine Spirale"
+
+msgid "Tree Start"
+msgstr "Inizio Albero"
+
+msgid "Keyboard Resize Step"
+msgstr "Passo Ridimensionamento Tastiera"
+
+msgid "Percentage change per step when resizing splits with Super+= / Super+- (or Super+] / Super+[)."
+msgstr "Variazione percentuale dello split con Super+= / Super+- (o Super+] / Super+[)."
+
+msgid "Respect Window Minimum Hints"
+msgstr "Rispetta Dimensioni Minime Finestre"
+
+msgid "Automatically adjust split ratios when an application (e.g. browsers) enforces a minimum X11 width."
+msgstr "Adatta automaticamente gli split quando un'app (es. browser) impone una larghezza minima X11."
+
+msgid "Master Area Size (mfact)"
+msgstr "Dimensione Area Master (mfact)"
+
+msgid "Percentage of the screen reserved for the primary Master column or row."
+msgstr "Percentuale dello schermo riservata alla colonna o riga Master principale."
+
+msgid "Master Window Count (nmaster)"
+msgstr "Numero Finestre Master (nmaster)"
+
+msgid "Number of windows placed in the primary Master area before stacking remaining windows."
+msgstr "Quante finestre ospitare nell'area principale prima di impilare le successive nello Stack."
+
+msgid "Master Area Orientation"
+msgstr "Orientamento Area Master"
+
+msgid "Screen side where the primary Master area is placed (can also be rotated via Super+O)."
+msgstr "Lato del monitor in cui collocare l'area principale Master (ruotabile anche con Super+O)."
+
+msgid "Left"
+msgstr "Sinistra"
+
+msgid "Right"
+msgstr "Destra"
+
+msgid "Top"
+msgstr "Alto"
+
+msgid "Bottom"
+msgstr "Basso"
+
+msgid "New Window Placement"
+msgstr "Posizionamento Nuove Finestre"
+
+msgid "Where newly opened windows are inserted in Master & Stack mode."
+msgstr "Dove inserire le nuove finestre aperte in modalità Master & Stack."
+
+msgid "Stack End"
+msgstr "Coda Stack"
+
+msgid "Stack Top"
+msgstr "Cima Stack"
+
+msgid "Become Master"
+msgstr "Diventa Master"
+
+msgid "Single Window Width"
+msgstr "Larghezza Finestra Singola"
+
+msgid "Width used when only 1 window is open (100% = full screen, <100% = centered column)."
+msgstr "Larghezza occupata quando è aperta 1 sola finestra (100% = tutto schermo, <100% = centrata)."
+
+msgid "Center Master Column Width"
+msgstr "Larghezza Colonna Master Centrale"
+
+msgid "Percentage of monitor width assigned to the central Master column."
+msgstr "Percentuale della larghezza del monitor assegnata alla colonna centrale."
+
+msgid "Center Master Window Count"
+msgstr "Numero Finestre Colonna Centrale"
+
+msgid "How many windows are stacked in the center column before distributing others to the side wings."
+msgstr "Quante finestre impilare al centro prima di distribuire le altre nelle due colonne laterali."
+
+msgid "Side Column Balancing"
+msgstr "Bilanciamento Colonne Laterali"
+
+msgid "Order in which secondary windows are distributed between the right and left side columns."
+msgstr "Ordine con cui le finestre secondarie vengono distribuite tra colonna destra e sinistra."
+
+msgid "Alternate R/L"
+msgstr "Alternata DX/SX"
+
+msgid "Alternate L/R"
+msgstr "Alternata SX/DX"
+
+msgid "Equal Split L/R"
+msgstr "Metà SX / Metà DX"
+
+msgid "Window width when only a single window is open on the monitor (ideal for ultrawide displays)."
+msgstr "Larghezza della finestra quando è l'unica aperta sul monitor (ideale su monitor ultrawide)."
+
+msgid "Default Column Width"
+msgstr "Larghezza Predefinita Colonne"
+
+msgid "Base width of each column in the horizontal ribbon as a percentage of monitor width."
+msgstr "Larghezza base di ciascuna colonna nel nastro orizzontale rispetto al monitor."
+
+msgid "Single Window Column Width"
+msgstr "Larghezza Colonna Finestra Singola"
+
+msgid "Column width when only a single window is open on the workspace."
+msgstr "Larghezza della colonna quando sullo spazio di lavoro c'è una sola finestra aperta."
+
+msgid "Viewport Focus Alignment"
+msgstr "Allineamento Viewport su Colonna Attiva"
+
+msgid "Scroll only when the focused column crosses screen edges (Niri style) or always keep it centered (PaperWM style)."
+msgstr "Scorri quando la colonna esce dai bordi (stile Niri) o mantieni sempre centrata la finestra attiva (PaperWM)."
+
+msgid "On Edge (Niri)"
+msgstr "Ai Bordi (Niri)"
+
+msgid "Always Centered"
+msgstr "Sempre Centrata"
+
+msgid "Minimum Edge Visibility Threshold"
+msgstr "Soglia Minima Visibilità Bordo"
+
+msgid "Minimum visible width in pixels for a partially off-screen column to be fitted at the monitor edge."
+msgstr "Larghezza minima visibile in pixel affinché una colonna parzialmente fuori schermo venga adattata al bordo."
+
+msgid "Column Resize Step"
+msgstr "Passo Ridimensionamento Colonna"
+
+msgid "Percentage width change for the focused column with Super+= / Super+- (or Super+] / Super+[)."
+msgstr "Variazione percentuale della singola colonna con Super+= / Super+- (o Super+] / Super+[)."
+
+msgid "Monocle / Zen Window Width"
+msgstr "Larghezza Finestra Monocle / Zen"
+
+msgid "100% maximizes across the work area; lower values center the window in distraction-free Zen mode."
+msgstr "100% massimizza sull'area di lavoro; valori inferiori centrano la finestra in modalità Zen."
+
+msgid "Monocle / Zen Window Height"
+msgstr "Altezza Finestra Monocle / Zen"
+
+msgid "Window height as a percentage of the monitor work area."
+msgstr "Altezza percentuale della finestra rispetto all'area di lavoro del monitor."
+
+msgid "Zen Frame Extra Margin"
+msgstr "Margine Extra Cornice Zen"
+
+msgid "Additional margin in pixels around the Monocle deck to visually isolate the active window."
+msgstr "Margine aggiuntivo in pixel attorno al mazzo Monocle per isolare visivamente la finestra attiva."
+
+msgid "Wrap-Around Deck Navigation"
+msgstr "Navigazione Circolare Continua del Mazzo"
+
+msgid "Moving past the last window with Super+J/L or Arrow keys wraps around to the first window."
+msgstr "Passando oltre l'ultima finestra con Super+J/L o Frecce si riparte automaticamente dalla prima."
+
+msgid "Maximum Columns (0 = Auto √N)"
+msgstr "Numero Massimo di Colonne (0 = Auto √N)"
+
+msgid "Set to 0 to compute columns automatically (√N), or fix the maximum number of columns per row."
+msgstr "Imposta 0 per calcolare automaticamente le colonne (√N), oppure fissa il numero massimo di colonne per riga."
+
+msgid "Incomplete Last Row Behavior"
+msgstr "Comportamento Ultima Riga Incompleta"
+
+msgid "How windows in the last row are arranged when the total window count is not a multiple of the columns."
+msgstr "Come disporre le finestre nell'ultima riga quando il totale non è un multiplo delle colonne."
+
+msgid "Stretch"
+msgstr "Espandi (Stretch)"
+
+msgid "Center Cells"
+msgstr "Centra Celle"
+
+msgid "Align Left"
+msgstr "Allinea a Sinistra"
+
+msgid "Auto-Center New Floating Windows"
+msgstr "Centra Automaticamente Nuove Finestre in Floating"
+
+msgid "Automatically position newly opened windows at the center of the screen when in Floating mode."
+msgstr "Posiziona automaticamente al centro dello schermo ogni nuova finestra aperta in modalità Floating."
+
+msgid "Center Window Action Width (Super+C)"
+msgstr "Larghezza Azione Centra Finestra (Super+C)"
+
+msgid "Width percentage relative to the monitor applied when pressing Super+C on a window."
+msgstr "Larghezza percentuale rispetto al monitor applicata quando premi Super+C su una finestra."
+
+msgid "Center Window Action Height (Super+C)"
+msgstr "Altezza Azione Centra Finestra (Super+C)"
+
+msgid "Height percentage relative to the monitor applied when pressing Super+C on a window."
+msgstr "Altezza percentuale rispetto al monitor applicata quando premi Super+C su una finestra."
+
+msgid "Quick Snap Grid Columns (Super+G)"
+msgstr "Colonne Quick Snap Grid (Super+G)"
+
+msgid "Number of columns in the interactive Quick Snap Grid overlay."
+msgstr "Numero di colonne della griglia interattiva di posizionamento rapido."
+
+msgid "Quick Snap Grid Rows (Super+G)"
+msgstr "Righe Quick Snap Grid (Super+G)"
+
+msgid "Number of rows in the interactive Quick Snap Grid overlay."
+msgstr "Numero di righe della griglia interattiva di posizionamento rapido."
+
+msgid "Scratchpad Window Width (Super+S)"
+msgstr "Larghezza Finestra Scratchpad (Super+S)"
+
+msgid "Width as a percentage of the screen for the drop-down Scratchpad window."
+msgstr "Larghezza in percentuale dello schermo per la finestra a comparsa dello Scratchpad."
+
+msgid "Scratchpad Window Height (Super+S)"
+msgstr "Altezza Finestra Scratchpad (Super+S)"
+
+msgid "Height as a percentage of the screen for the drop-down Scratchpad window."
+msgstr "Altezza in percentuale dello schermo per la finestra a comparsa dello Scratchpad."
+
+msgid "↺ Reset Current Ratios & Splits"
+msgstr "↺ Ripristina Proporzioni"
+
+msgid "? Visual Guide & Shortcuts"
+msgstr "? Guida Visiva & Scorciatoie"
+
+msgid "⌨ System Shortcuts & Window Rules..."
+msgstr "⌨ Scorciatoie & Regole di Sistema..."
+
+msgid "Close"
+msgstr "Chiudi"
+
+msgid "Visual Guide"
+msgstr "Guida Visiva"
+
+msgid "Graphical overview of all 7 layouts with miniature monitor mockups, ideal workflows, and practical tips."
+msgstr "Panoramica grafica di tutti i 7 layout con miniature del monitor, casi d'uso ideali e suggerimenti pratici."
+
+msgid "Shortcuts"
+msgstr "Scorciatoie"
+
+msgid "Active keyboard shortcuts, modal resize controls, and mouse & multi-monitor interactions."
+msgstr "Scorciatoie da tastiera attive, controlli di ridimensionamento modale e interazioni con mouse e multi-monitor."
+
+msgid "Unassigned"
+msgstr "Non assegnato"
+
+msgid "How it works:"
+msgstr "Come funziona:"
+
+msgid "Best for:"
+msgstr "Ideale per:"
+
+msgid "Tip:"
+msgstr "Suggerimento:"
+
+msgid "Each new window recursively splits the focused window tile based on its aspect ratio (vertical split if wider, horizontal split if taller), creating a balanced binary spiral."
+msgstr "Ogni nuova finestra divide ricorsivamente il riquadro della finestra attiva in base alle sue proporzioni (split verticale se più larga, orizzontale se più alta), creando una spirale binaria bilanciata."
+
+msgid "Everyday multitasking (terminals, code editors, browser, file manager). Any internal border can be dragged with the mouse."
+msgstr "Multitasking quotidiano (terminali, editor di codice, browser, file manager). Qualsiasi bordo interno può essere trascinato con il mouse."
+
+msgid "Drag any shared border with the mouse or press Super+R to resize the active BSP node."
+msgstr "Trascina qualsiasi bordo condiviso con il mouse o premi Super+R per ridimensionare il nodo BSP attivo."
+
+msgid "Divides the screen into two areas: the primary Master area (55% by default) for your main window, and the side Stack column where secondary windows are stacked vertically."
+msgstr "Divide lo schermo in due aree: l'area principale Master (55% di default) per la finestra principale e la colonna laterale Stack dove le finestre secondarie sono impilate verticalmente."
+
+msgid "Software development or writing with a large primary window and terminals/docs alongside."
+msgstr "Sviluppo software o scrittura con una finestra principale ampia e terminali o documentazione affiancati."
+
+msgid "Press Super+Enter to promote the focused window to Master, Super+O to rotate Master (Left/Right/Top/Bottom), and Super+. / Super+, to change the Master window count."
+msgstr "Premi Super+Invio per promuovere la finestra attiva a Master, Super+O per ruotare il Master (Sinistra/Destra/Alto/Basso) e Super+. / Super+, per cambiare il numero di finestre nel Master."
+
+msgid "Places the Master area in the center of the screen (with 1 or 2 windows) and automatically distributes secondary windows between the left and right wing columns."
+msgstr "Posiziona l'area Master al centro dello schermo (con 1 o 2 finestre) e distribuisce automaticamente le finestre secondarie tra le colonne laterali sinistra e destra."
+
+msgid "Large monitors (27\"+) and Ultrawide displays (21:9 or 32:9), keeping your main work directly in front of you."
+msgstr "Monitor grandi (27\"+) e schermi Ultrawide (21:9 o 32:9), mantenendo il lavoro principale esattamente di fronte a te."
+
+msgid "With 1–2 windows it behaves like Master & Stack; from the 3rd window onward it automatically activates both side wings."
+msgstr "Con 1–2 finestre si comporta come Master & Stack; dalla 3ª finestra in poi attiva automaticamente entrambe le colonne laterali."
+
+msgid "Arranges windows side-by-side on a continuous horizontal ribbon: each window keeps a generous width (e.g. 60% of the screen) without ever shrinking into tiny slivers. Moving focus scrolls the viewport smoothly."
+msgstr "Dispone le finestre affiancate su un nastro orizzontale continuo: ogni finestra mantiene una larghezza ampia (es. 60% dello schermo) senza mai rimpicciolirsi. Spostando il focus la vista scorre automaticamente."
+
+msgid "Laptop screens or sessions with many open windows that need to stay wide and readable."
+msgstr "Schermi di portatili o sessioni con molte finestre aperte che devono restare larghe e leggibili."
+
+msgid "Use Super+H / Super+L (or Super + ←/→) to scroll along the ribbon and Super+= / Super+- to widen or narrow the focused column."
+msgstr "Usa Super+H / Super+L (o Super + ←/→) per scorrere lungo il nastro e Super+= / Super+- per allargare o stringere la colonna attiva."
+
+msgid "Maximizes every window to full screen (or into a centered Zen column), stacking them on top of each other. Switching focus via keyboard automatically raises the selected window."
+msgstr "Massimizza ogni finestra a tutto schermo (o in una colonna Zen centrata), impilandole una sopra l'altra. Cambiando focus da tastiera viene portata in primo piano la finestra selezionata."
+
+msgid "Deep focus on a single task with zero visual distractions."
+msgstr "Massima concentrazione su un singolo compito senza distrazioni visive."
+
+msgid "Press Super+M at any time to quickly toggle Monocle mode and return to your previous layout."
+msgstr "Premi Super+M in qualsiasi momento per attivare/disattivare rapidamente la modalità Monocle e tornare al layout precedente."
+
+msgid "Automatically computes a symmetrical mathematical grid (e.g. 2×2 for 4 windows, 3×2 for 5–6 windows), giving every window equal screen space."
+msgstr "Calcola automaticamente una griglia matematica simmetrica (es. 2×2 per 4 finestre, 3×2 per 5–6 finestre), assegnando a ogni finestra uguale spazio sullo schermo."
+
+msgid "Monitoring multiple terminals, system logs, charts, or dashboards simultaneously."
+msgstr "Monitoraggio simultaneo di più terminali, log di sistema, grafici o dashboard."
+
+msgid "Use Super+Shift+Arrows (or drag with the mouse) to quickly swap two cells in the grid."
+msgstr "Usa Super+Shift+Frecce (o trascina con il mouse) per scambiare rapidamente due celle nella griglia."
+
+msgid "Disables automatic tiling on the current workspace: windows can be freely moved, overlapped, and resized just like on a traditional Cinnamon desktop."
+msgstr "Disattiva il tiling automatico sullo spazio di lavoro corrente: le finestre possono essere spostate, sovrapposte e ridimensionate liberamente come sul desktop classico."
+
+msgid "Graphics applications, photo/video editing, or windows you prefer to arrange manually."
+msgstr "Applicazioni di grafica, fotoritocco/video editing o finestre che preferisci disporre manualmente."
+
+msgid "Even in Floating mode you can still use Super+G (Quick Snap Grid), Ctrl+Drag to screen edges, and Super+S (Scratchpad)."
+msgstr "Anche in modalità Floating puoi comunque usare Super+G (Quick Snap Grid), Ctrl+Trascina sui bordi dello schermo e Super+S (Scratchpad)."
+
+msgid "⌨ Customize Keybindings..."
+msgstr "⌨ Personalizza Scorciatoie..."
+
+msgid "Focus Navigation (Vim HJKL or Arrows)"
+msgstr "Navigazione Focus (Vim HJKL o Frecce)"
+
+msgid "Move focus to the window on the Left"
+msgstr "Sposta il focus alla finestra a Sinistra"
+
+msgid "Move focus to the window on the Right"
+msgstr "Sposta il focus alla finestra a Destra"
+
+msgid "Move focus to the window Above"
+msgstr "Sposta il focus alla finestra in Alto"
+
+msgid "Move focus to the window Below"
+msgstr "Sposta il focus alla finestra in Basso"
+
+msgid "Move / Swap Windows"
+msgstr "Spostamento / Scambio Finestre"
+
+msgid "Swap active window with the one on the Left"
+msgstr "Scambia la finestra attiva con quella a Sinistra"
+
+msgid "Swap active window with the one on the Right"
+msgstr "Scambia la finestra attiva con quella a Destra"
+
+msgid "Swap active window with the one Above"
+msgstr "Scambia la finestra attiva con quella in Alto"
+
+msgid "Swap active window with the one Below"
+msgstr "Scambia la finestra attiva con quella in Basso"
+
+msgid "Promote focused window to Master (or swap with Master)"
+msgstr "Promuovi la finestra attiva a Master (o scambiala con il Master)"
+
+msgid "Layouts, Splits & Ratios"
+msgstr "Layout, Split e Proporzioni"
+
+msgid "Switch to next Layout (Dwindle → Master → 3-Col → Scrolling → ...)"
+msgstr "Passa al Layout successivo (Dwindle → Master → 3-Col → Scrolling → ...)"
+
+msgid "Switch to previous Layout"
+msgstr "Passa al Layout precedente"
+
+msgid "Enable / Pause Auto-Tiling on the current workspace"
+msgstr "Attiva / Metti in pausa l'Auto-Tiling sullo spazio di lavoro corrente"
+
+msgid "Toggle Monocle / Zen Zoom on the active window"
+msgstr "Attiva / Disattiva lo Zoom Monocle / Zen sulla finestra attiva"
+
+msgid "Widen Master area / active split / Scrolling column"
+msgstr "Allarga l'area Master / lo split attivo / la colonna in Scrolling"
+
+msgid "Narrow Master area / active split / Scrolling column"
+msgstr "Stringi l'area Master / lo split attivo / la colonna in Scrolling"
+
+msgid "Increase number of windows in the Master area"
+msgstr "Aumenta il numero di finestre nell'area Master"
+
+msgid "Decrease number of windows in the Master area"
+msgstr "Riduci il numero di finestre nell'area Master"
+
+msgid "Rotate Master orientation (L/R/T/B) or Dwindle BSP split"
+msgstr "Ruota l'orientamento del Master (S/D/A/B) o lo split BSP in Dwindle"
+
+msgid "Scratchpad, Quick Grid & Floating"
+msgstr "Scratchpad, Griglia Rapida e Floating"
+
+msgid "Show / Hide the drop-down Scratchpad window"
+msgstr "Mostra / Nascondi la finestra a comparsa dello Scratchpad"
+
+msgid "Add / Remove the active window from the Scratchpad"
+msgstr "Aggiungi / Rimuovi la finestra attiva dallo Scratchpad"
+
+msgid "Open the interactive Quick Snap Grid overlay (gTile style)"
+msgstr "Apri la griglia interattiva Quick Snap Grid (stile gTile)"
+
+msgid "Toggle Floating / Tiled state for the active window"
+msgstr "Alterna stato Floating / Tiled per la finestra attiva"
+
+msgid "Float and center the active window on the monitor"
+msgstr "Rendi flottante e centra la finestra attiva sul monitor"
+
+msgid "Enter / Exit Modal Resize Mode"
+msgstr "Entra / Esci dalla Modalità di Ridimensionamento (Resize Mode)"
+
+msgid "Inside Modal Resize Mode (Super + R)"
+msgstr "Dentro la Modalità di Ridimensionamento (Super + R)"
+
+msgid "Widen / Narrow or Grow / Shrink the focused tile by 5%"
+msgstr "Allarga / Stringi o Alza / Abbassa il riquadro attivo del 5%"
+
+msgid "Fine resize by 2% steps"
+msgstr "Ridimensionamento di precisione a passi del 2%"
+
+msgid "Reset all ratios and splits on the current workspace to defaults"
+msgstr "Ripristina tutte le proporzioni e gli split dello spazio di lavoro ai valori predefiniti"
+
+msgid "Cycle to the next layout without leaving Resize Mode"
+msgstr "Passa al layout successivo senza uscire dalla Modalità di Ridimensionamento"
+
+msgid "Confirm and exit Modal Resize Mode"
+msgstr "Conferma ed esci dalla Modalità di Ridimensionamento"
+
+msgid "Mouse & Multi-Monitor Interactions"
+msgstr "Interazioni Mouse e Multi-Monitor"
+
+msgid "Drag Window (Left Click)"
+msgstr "Trascina Finestra (Tasto Sinistro)"
+
+msgid "Drag a tiled window onto another to swap their positions (or onto a tile edge in Dwindle to split it) with a live drop preview."
+msgstr "Trascina una finestra su un'altra per scambiarne la posizione (o sul bordo di una cella in Dwindle per dividerla) con anteprima in tempo reale."
+
+msgid "Ctrl + Drag Window"
+msgstr "Ctrl + Trascina Finestra"
+
+msgid "Hold Ctrl while dragging a window to screen edges or corners for instant Edge Snap (halves, quarters, or top-edge maximize)."
+msgstr "Tieni premuto Ctrl mentre trascini una finestra verso i bordi o gli angoli dello schermo per l'ancoraggio rapido (metà, quarti o massimizzazione)."
+
+msgid "Drag Shared Border"
+msgstr "Trascina Bordo Condiviso"
+
+msgid "Resizing any shared border between tiled windows with the mouse simultaneously adjusts the neighboring tiles."
+msgstr "Ridimensionando col mouse un bordo condiviso tra finestre affiancate vengono adattate simultaneamente anche le finestre adiacenti."
+
+msgid "Panel Indicator (Top/Bottom Bar)"
+msgstr "Indicatore sul Pannello (Barra Superiore/Inferiore)"
+
+msgid "Left-Click: Layout Menu  •  Middle-Click: Toggle Auto-Tile  •  Right-Click: Preferences  •  Scroll Wheel: Cycle Layout."
+msgstr "Click Sinistro: Menu Layout  •  Click Centrale: Pausa/Attiva Tiling  •  Click Destro: Preferenze  •  Rotellina: Cambia Layout."
+
+msgid "Independent Multi-Monitor & Workspaces"
+msgstr "Multi-Monitor e Spazi di Lavoro Indipendenti"
+
+msgid "Every (Monitor, Workspace) pair maintains its own independent layout, split ratios, and BSP tree."
+msgstr "Ogni coppia (Monitor, Spazio di lavoro) mantiene il proprio layout, le proprie proporzioni e il proprio albero BSP in modo indipendente."
+
+msgid "Group / Ungroup active window in a Manual Tab Group"
+msgstr "Raggruppa / Separa la finestra attiva in un Gruppo a Schede Manuale"
+
+msgid "Shift + Drag Window"
+msgstr "Shift + Trascina Finestra"
+
+msgid "Hold Shift while dragging a window onto another tile to merge them into a Manual Tab Group (click or scroll the titlebar badge to switch tabs)."
+msgstr "Tieni premuto Shift mentre trascini una finestra sopra un'altra per unirle in un Gruppo a Schede Manuale (clicca o usa la rotellina sul badge nella barra del titolo per cambiare scheda)."
+
+msgid "Group as Tabs with"
+msgstr "Raggruppa in Schede con"
+
+msgid "Manual Tab Group"
+msgstr "Gruppo a Schede"
+
+msgid "Detach Active Tab from Group"
+msgstr "Separa Scheda Attiva dal Gruppo"
+
+msgid "Dissolve Entire Tab Group"
+msgstr "Sciogli Intero Gruppo a Schede"
+
+msgid "Detached from Tab Group"
+msgstr "Separata dal Gruppo a Schede"
+
+msgid "Tab Group Dissolved"
+msgstr "Gruppo a Schede Sciolto"
+
+msgid "All tabs expanded into independent tiles"
+msgstr "Tutte le schede sono state espanse in riquadri indipendenti"
+
+msgid "⬇ Export Profile..."
+msgstr "⬇ Esporta Profilo..."
+
+msgid "⬆ Import Profile..."
+msgstr "⬆ Importa Profilo..."
+
+msgid "Export CinnaWM Configuration"
+msgstr "Esporta Configurazione di CinnaWM"
+
+msgid "Import CinnaWM Configuration"
+msgstr "Importa Configurazione di CinnaWM"
+
+msgid "JSON Configuration (*.json)"
+msgstr "Configurazione JSON (*.json)"
+
+msgid "Configuration Exported"
+msgstr "Configurazione Esportata"
+
+msgid "Profile saved to:\n"
+msgstr "Profilo salvato in:\n"
+
+msgid "Export Failed"
+msgstr "Esportazione Fallita"
+
+msgid "Configuration Imported"
+msgstr "Configurazione Importata"
+
+msgid "All preferences, layouts, and shortcuts have been restored."
+msgstr "Tutte le preferenze, i layout e le scorciatoie sono stati ripristinati."
+
+msgid "All preferences and shortcuts restored"
+msgstr "Tutte le preferenze e scorciatoie ripristinate"
+
+msgid "Import Failed"
+msgstr "Importazione Fallita"
+
+msgid "Invalid JSON format: root must be an object."
+msgstr "Formato JSON non valido: la radice deve essere un oggetto."
+
+msgid "No valid CinnaWM settings found in the selected file."
+msgstr "Nessuna impostazione valida di CinnaWM trovata nel file selezionato."
+
+msgid "Lock the screen (Cinnamon System)"
+msgstr "Blocca lo schermo (Sistema Cinnamon)"
+
+msgid "Minimum Tile Width Before Stacking"
+msgstr "Larghezza Minima Riquadro prima dell'Impilamento"
+
+msgid "When a layout cannot keep each window this wide, it groups overflow windows in a stack navigable with directional focus keys."
+msgstr "Quando un layout non riesce a mantenere ciascuna finestra a questa larghezza, raggruppa le finestre eccedenti in una pila navigabile con i tasti di fuoco direzionale."
+
+msgid "Minimum Tile Height Before Stacking"
+msgstr "Altezza Minima Riquadro prima dell'Impilamento"
+
+msgid "When a layout cannot keep each window this tall, it groups overflow windows in a stack navigable with directional focus keys."
+msgstr "Quando un layout non riesce a mantenere ciascuna finestra a questa altezza, raggruppa le finestre eccedenti in una pila navigabile con i tasti di fuoco direzionale."
+
+msgid "Dynamic binary spiral (Hyprland / bspwm style)"
+msgstr "Spirale binaria dinamica (stile Hyprland / bspwm)"
+
+msgid "Primary Master window + vertical Stack column (dwm / XMonad style)"
+msgstr "Finestra Master principale + colonna Stack verticale (stile dwm / XMonad)"
+
+msgid "Centered Master (3-Column)"
+msgstr "Master Centrato (3 Colonne)"
+
+msgid "Master in the center with Left and Right Stack wings (ideal for Ultrawide)"
+msgstr "Master al centro con ali Stack sinistra e destra (ideale per Ultrawide)"
+
+msgid "Horizontal ribbon of wide columns with automatic viewport scrolling (Niri / PaperWM style)"
+msgstr "Nastro orizzontale di colonne ampie con scorrimento automatico (stile Niri / PaperWM)"
+
+msgid "Monocle / Deck (Zen)"
+msgstr "Monocle / Zen (Deck)"
+
+msgid "All windows maximized in a deck; focus raises the active window"
+msgstr "Tutte le finestre massimizzate in un mazzo; il focus porta in primo piano la finestra attiva"
+
+msgid "Equal-sized Rows × Columns grid for all open windows"
+msgstr "Griglia Righe × Colonne di dimensioni uguali per tutte le finestre aperte"
+
+msgid "Floating (Classic)"
+msgstr "Fluttuante (Classico)"
+
+msgid "Free-floating windows with manual positioning"
+msgstr "Finestre libere fluttuanti con posizionamento manuale"
+
+msgid "Stacked Windows"
+msgstr "Finestre Impilate"
+
+msgid "Window"
+msgstr "Finestra"
+
+msgid "Exit Zoom"
+msgstr "Esci da Zoom"
+
+msgid "Zoom / Zen Fullscreen"
+msgstr "Zoom / Zen Schermo Intero"
+
+msgid "Moved to Monitor %d"
+msgstr "Spostata sul Monitor %d"
+
+msgid "Monitor %d Layout: %s"
+msgstr "Monitor %d — Layout: %s"
+
+msgid "Promoted to Master"
+msgstr "Promossa a Master"
+
+msgid "Layout: %s"
+msgstr "Layout: %s"
+
+msgid "Auto-Tiling Enabled"
+msgstr "Auto-Tiling Attivo"
+
+msgid "Auto-Tiling Paused"
+msgstr "Auto-Tiling in Pausa"
+
+msgid "Floating mode on this workspace"
+msgstr "Modalità fluttuante su questo spazio di lavoro"
+
+msgid "Floating Window"
+msgstr "Finestra Fluttuante"
+
+msgid "Tiled Window"
+msgstr "Finestra Affiancata"
+
+msgid "Monocle / Zoom Mode"
+msgstr "Modalità Monocle / Zoom"
+
+msgid "Zoom / Zen"
+msgstr "Zoom / Zen"
+
+msgid "Restored from Zoom / Zen"
+msgstr "Ripristinata da Zoom / Zen"
+
+msgid "Ratios Reset"
+msgstr "Proporzioni Ripristinate"
+
+msgid "All tiles restored to default sizes"
+msgstr "Tutti i riquadri ripristinati alle dimensioni predefinite"
+
+msgid "Master Windows: %d"
+msgstr "Finestre Master: %d"
+
+msgid "Primary area"
+msgstr "Area principale"
+
+msgid "Split Rotated"
+msgstr "Divisione Ruotata"
+
+msgid "Toggled vertical/horizontal orientation of BSP node"
+msgstr "Orientamento verticale/orizzontale del nodo BSP alternato"
+
+msgid "Master Orientation: %s"
+msgstr "Orientamento Master: %s"
+
+msgid "Scratchpad Empty"
+msgstr "Scratchpad Vuoto"
+
+msgid "Press %s on a window to assign it to the Scratchpad"
+msgstr "Premi %s su una finestra per assegnarla allo Scratchpad"
+
+msgid "Scratchpad Shown"
+msgstr "Scratchpad Mostrato"
+
+msgid "Scratchpad Hidden"
+msgstr "Scratchpad Nascosto"
+
+msgid "Added to Scratchpad"
+msgstr "Aggiunta allo Scratchpad"
+
+msgid "Press %s to toggle it anytime"
+msgstr "Premi %s per mostrarla o nasconderla in qualsiasi momento"
+
+msgid "Removed from Scratchpad"
+msgstr "Rimossa dallo Scratchpad"
+
+msgid "Window Centered"
+msgstr "Finestra Centrata"
+
+msgid "Insert Left of"
+msgstr "Inserisci a sinistra di"
+
+msgid "Insert Right of"
+msgstr "Inserisci a destra di"
+
+msgid "Insert Above"
+msgstr "Inserisci sopra"
+
+msgid "Insert Below"
+msgstr "Inserisci sotto"
+
+msgid "Swap with"
+msgstr "Scambia con"
+
+msgid "Quick Snap Grid"
+msgstr "Griglia Rapida"
+
+msgid "Drag across cells with the mouse or use Arrows/HJKL (+Shift to extend), Enter to confirm, Esc to close"
+msgstr "Trascina sulle celle con il mouse o usa Frecce/HJKL (+Shift per estendere), Invio per confermare, Esc per chiudere"
+
+msgid "Left ½"
+msgstr "Metà Sinistra"
+
+msgid "Right ½"
+msgstr "Metà Destra"
+
+msgid "Center 70%"
+msgstr "Centro 70%"
+
+msgid "Left ⅓"
+msgstr "Sinistra ⅓"
+
+msgid "Center ⅓"
+msgstr "Centro ⅓"
+
+msgid "Right ⅓"
+msgstr "Destra ⅓"
+
+msgid "Max"
+msgstr "Massimizza"
+
+msgid "[RESIZE MODE]  ←/→ or H/L: Width  |  ↑/↓ or K/J: Height  |  Shift: Fine  |  0: Reset  |  Esc/Enter: Exit"
+msgstr "[MODO RIDIMENSIONA]  ←/→ o H/L: Larghezza  |  ↑/↓ o K/J: Altezza  |  Shift: Fine  |  0: Ripristina  |  Esc/Invio: Esci"
+
+msgid "Zoom / Zen Window"
+msgstr "Finestra Zoom / Zen"
+
+msgid "Workspace"
+msgstr "Spazio di lavoro"
+
+msgid "Layout"
+msgstr "Layout"
+
+msgid "Tiled"
+msgstr "Affiancate"
+
+msgid "Stacked"
+msgstr "Impilate"
+
+msgid "Floating"
+msgstr "Fluttuanti"
+
+msgid "Scratchpad"
+msgstr "Scratchpad"
+
+msgid "Click: Layout  •  Scroll: Cycle layout  •  Middle: Tiling On/Off  •  Right: Settings"
+msgstr "Click: Menu Layout  •  Rotellina: Cambia layout  •  Centrale: Tiling On/Off  •  Destro: Preferenze"
+
+msgid "Spiral binary space partitioning (Hyprland / bspwm style)"
+msgstr "Partizionamento binario a spirale (stile Hyprland / bspwm)"
+
+msgid "Primary master area + stacked side column (dwm / XMonad style)"
+msgstr "Area Master principale + colonna laterale impilata (stile dwm / XMonad)"
+
+msgid "Centered master window + 2 side stacks (Ultrawide)"
+msgstr "Finestra Master centrata + 2 pile laterali (Ultrawide)"
+
+msgid "Horizontally scrolling ribbon of columns (Niri / PaperWM style)"
+msgstr "Nastro orizzontale scorrevole di colonne (stile Niri / PaperWM)"
+
+msgid "Maximized or centered Zen deck (i3 style)"
+msgstr "Mazzo Zen massimizzato o centrato (stile i3)"
+
+msgid "Balanced automatic R×C grid"
+msgstr "Griglia automatica bilanciata R×C"
+
+msgid "Free floating windows without automatic tiling"
+msgstr "Finestre libere fluttuanti senza affiancamento automatico"
+
+msgid "Directional Focus, Window Swapping & Multi-Monitor / Workspace"
+msgstr "Focus direzionale, scambio finestre, multi-monitor e spazi di lavoro"
+
+msgid "Move pointer to newly focused window on keyboard navigation"
+msgstr "Sposta il puntatore sulla finestra focalizzata durante la navigazione da tastiera"
+
+msgid "Use distinct border colors for Floating and Stacked/Tabbed windows"
+msgstr "Usa colori bordo distinti per finestre Fluttuanti e Impilate / a Schede"
+
+msgid "Active border color for Floating & Scratchpad windows"
+msgstr "Colore del bordo attivo per finestre Fluttuanti e Scratchpad"
+
+msgid "Active border color for Stacked & Tabbed windows"
+msgstr "Colore del bordo attivo per finestre Impilate o in Gruppo a Schede"
+
+msgid "Move focused window to previous workspace"
+msgstr "Sposta la finestra attiva nello spazio di lavoro precedente"
+
+msgid "Move focused window to next workspace"
+msgstr "Sposta la finestra attiva nello spazio di lavoro successivo"
+
+msgid "Move focused window to next monitor"
+msgstr "Sposta la finestra attiva sul monitor successivo"
+
+msgid "Focus next monitor"
+msgstr "Sposta il focus sul monitor successivo"
+
+msgid "Focus the next monitor"
+msgstr "Sposta il focus sul monitor successivo"
+
+msgid "Cursor Follows Focus"
+msgstr "Il cursore segue il focus"
+
+msgid "Move the mouse pointer to the newly focused window on keyboard or monitor navigation."
+msgstr "Sposta il puntatore del mouse al centro della finestra appena focalizzata via tastiera o cambio monitor."
+
+msgid "Active Border Color (Tiled)"
+msgstr "Colore bordo attivo (Affiancate)"
+
+msgid "Highlight color used outside the focused window when it is tiled."
+msgstr "Colore di evidenziazione attorno alla finestra attiva quando è affiancata (Tiled)."
+
+msgid "State-Aware Border Colors"
+msgstr "Colori bordo per stato finestra"
+
+msgid "Use distinct border colors for Floating/Scratchpad and Stacked/Tabbed windows."
+msgstr "Mostra colori del bordo distinti per finestre Fluttuanti/Scratchpad e Impilate/a Schede."
+
+msgid "Floating & Scratchpad Border Color"
+msgstr "Colore bordo Fluttuanti e Scratchpad"
+
+msgid "Highlight color used when the focused window is Floating or in the Scratchpad."
+msgstr "Colore di evidenziazione quando la finestra attiva è Fluttuante o nello Scratchpad."
+
+msgid "Stacked & Tabbed Border Color"
+msgstr "Colore bordo Impilate e a Schede"
+
+msgid "Highlight color used when the focused window belongs to an Overflow Stack or Manual Tab Group."
+msgstr "Colore di evidenziazione quando la finestra attiva appartiene a uno Stack o a un Gruppo a Schede."
+
+msgid "Workspace %d"
+msgstr "Spazio di lavoro %d"
+
+msgid "Monitor %d"
+msgstr "Monitor %d"
+
+msgid "Empty monitor"
+msgstr "Monitor vuoto"
+
+

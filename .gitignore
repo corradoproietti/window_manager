@@ -1,0 +1,13 @@
+/target
+.backup/
+dist/
+__pycache__/
+*.py[cod]
+*$py.class
+*.zip
+*.sha256
+*.mo
+*.swp
+*.swo
+*~
+.DS_Store

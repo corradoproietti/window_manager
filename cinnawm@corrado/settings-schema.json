@@ -1,0 +1,777 @@
+{
+    "layout": {
+        "type": "layout",
+        "pages": ["page-layouts", "page-mouse-ui", "page-rules", "page-keybindings"],
+        "page-layouts": {
+            "type": "page",
+            "title": "Layouts & Gaps",
+            "sections": [
+                "section-general",
+                "section-dwindle",
+                "section-master",
+                "section-centered-master",
+                "section-scrolling",
+                "section-monocle",
+                "section-grid",
+                "section-floating",
+                "section-gaps",
+                "section-actions"
+            ]
+        },
+        "page-mouse-ui": {
+            "type": "page",
+            "title": "Mouse & Appearance",
+            "sections": ["section-mouse", "section-border", "section-osd-grid"]
+        },
+        "page-rules": {
+            "type": "page",
+            "title": "Rules & Scratchpad",
+            "sections": ["section-rules", "section-scratchpad"]
+        },
+        "page-keybindings": {
+            "type": "page",
+            "title": "Keyboard Shortcuts",
+            "sections": ["section-kb-nav", "section-kb-layout", "section-kb-tools"]
+        },
+        "section-general": {
+            "type": "section",
+            "title": "Tiling Engine",
+            "keys": ["default-layout", "auto-tiling-enabled", "overflow-min-width-px", "overflow-min-height-px"]
+        },
+        "section-dwindle": {
+            "type": "section",
+            "title": "Dwindle / BSP Layout Parameters",
+            "keys": [
+                "dwindle-split-direction",
+                "dwindle-default-split-ratio-pct",
+                "dwindle-new-window-placement",
+                "dwindle-resize-step-pct",
+                "dwindle-respect-min-size"
+            ]
+        },
+        "section-master": {
+            "type": "section",
+            "title": "Master &amp; Stack Layout Parameters",
+            "keys": [
+                "master-ratio-pct",
+                "master-count",
+                "master-orientation",
+                "master-new-window-placement",
+                "master-single-window-width-pct"
+            ]
+        },
+        "section-centered-master": {
+            "type": "section",
+            "title": "Centered Master 3-Column Parameters",
+            "keys": [
+                "centered-master-ratio-pct",
+                "centered-master-count",
+                "centered-master-side-balance",
+                "centered-master-single-width-pct"
+            ]
+        },
+        "section-scrolling": {
+            "type": "section",
+            "title": "Scrolling Columns Layout Parameters",
+            "keys": [
+                "scrolling-column-width-pct",
+                "scrolling-single-column-width-pct",
+                "scrolling-focus-alignment",
+                "scrolling-min-visible-width-px",
+                "scrolling-resize-step-pct"
+            ]
+        },
+        "section-monocle": {
+            "type": "section",
+            "title": "Monocle / Zen Deck Layout Parameters",
+            "keys": [
+                "monocle-zen-width-pct",
+                "monocle-zen-height-pct",
+                "monocle-outer-margin-px",
+                "monocle-wrap-navigation"
+            ]
+        },
+        "section-grid": {
+            "type": "section",
+            "title": "Balanced Grid Layout Parameters",
+            "keys": [
+                "grid-max-cols",
+                "grid-last-row-behavior"
+            ]
+        },
+        "section-floating": {
+            "type": "section",
+            "title": "Floating Layout Parameters",
+            "keys": [
+                "floating-center-new-windows",
+                "floating-center-width-pct",
+                "floating-center-height-pct"
+            ]
+        },
+        "section-gaps": {
+            "type": "section",
+            "title": "Gaps &amp; Smart Gaps (Hyprland / i3-gaps style)",
+            "keys": ["inner-gap", "outer-gap", "smart-gaps"]
+        },
+        "section-actions": {
+            "type": "section",
+            "title": "Quick Actions",
+            "keys": ["btn-cycle-layout", "btn-open-grid", "btn-reset-ratios"]
+        },
+        "section-mouse": {
+            "type": "section",
+            "title": "Mouse Interaction (Pop!_OS Shell / Forge style)",
+            "keys": ["mouse-drag-swap", "mouse-edge-resize", "cursor-follows-focus"]
+        },
+        "section-border": {
+            "type": "section",
+            "title": "Active Window Border",
+            "keys": [
+                "active-border-enabled",
+                "active-border-color",
+                "active-border-state-colors",
+                "active-border-floating-color",
+                "active-border-stacked-color",
+                "active-border-width",
+                "active-border-radius"
+            ]
+        },
+        "section-osd-grid": {
+            "type": "section",
+            "title": "Panel Indicator, HUD &amp; Quick Snap Grid (gTile style)",
+            "keys": ["show-panel-indicator", "show-osd", "grid-cols", "grid-rows"]
+        },
+        "section-rules": {
+            "type": "section",
+            "title": "Automatic Window Rules",
+            "keys": ["floating-classes", "custom-window-rules"]
+        },
+        "section-scratchpad": {
+            "type": "section",
+            "title": "Drop-Down Scratchpad (i3 / Sway style)",
+            "keys": ["scratchpad-width-pct", "scratchpad-height-pct"]
+        },
+        "section-kb-nav": {
+            "type": "section",
+            "title": "Directional Focus, Window Swapping &amp; Multi-Monitor / Workspace",
+            "keys": [
+                "kb-focus-left", "kb-focus-right", "kb-focus-up", "kb-focus-down",
+                "kb-swap-left", "kb-swap-right", "kb-swap-up", "kb-swap-down",
+                "kb-promote-master",
+                "kb-move-workspace-prev", "kb-move-workspace-next",
+                "kb-move-monitor-next", "kb-focus-monitor-next"
+            ]
+        },
+        "section-kb-layout": {
+            "type": "section",
+            "title": "Layout &amp; Ratio Control",
+            "keys": [
+                "kb-cycle-layout", "kb-cycle-layout-back",
+                "kb-toggle-tiling", "kb-toggle-floating", "kb-toggle-monocle",
+                "kb-toggle-tab-group",
+                "kb-increase-ratio", "kb-decrease-ratio",
+                "kb-increase-master-count", "kb-decrease-master-count",
+                "kb-rotate-orientation"
+            ]
+        },
+        "section-kb-tools": {
+            "type": "section",
+            "title": "Scratchpad, Quick Grid &amp; Modal Resize",
+            "keys": [
+                "kb-scratchpad-toggle", "kb-scratchpad-assign",
+                "kb-quick-grid", "kb-resize-mode", "kb-center-window"
+            ]
+        }
+    },
+
+    "default-layout": {
+        "type": "combobox",
+        "default": "dwindle",
+        "description": "Default layout for workspaces",
+        "options": {
+            "[@] Dwindle / BSP (Hyprland / bspwm style)": "dwindle",
+            "[]= Master & Stack (dwm / XMonad style)": "master-stack",
+            "[|M|] Centered Master 3-Column (Ultrawide)": "centered-master",
+            "[>>>] Scrolling Columns (Niri / PaperWM style)": "scrolling",
+            "[M] Monocle / Zen Deck (i3 style)": "monocle",
+            "[#] Balanced Grid (Automatic Grid)": "grid",
+            "[~] Floating (Classic)": "floating"
+        }
+    },
+    "auto-tiling-enabled": {
+        "type": "switch",
+        "default": true,
+        "description": "Automatically enable Auto-Tiling on startup"
+    },
+    "overflow-min-width-px": {
+        "type": "spinbutton",
+        "default": 220,
+        "min": 120,
+        "max": 600,
+        "step": 20,
+        "units": "px",
+        "description": "Minimum tile width before windows are stacked into an overflow group"
+    },
+    "overflow-min-height-px": {
+        "type": "spinbutton",
+        "default": 150,
+        "min": 80,
+        "max": 400,
+        "step": 10,
+        "units": "px",
+        "description": "Minimum tile height before windows are stacked into an overflow group"
+    },
+    "dwindle-split-direction": {
+        "type": "combobox",
+        "default": "auto",
+        "description": "Dwindle split mode",
+        "options": {
+            "Auto (Aspect Ratio W >= H)": "auto",
+            "Spiral (Alternating V / H)": "spiral",
+            "Always Vertical (Side-by-Side)": "vertical",
+            "Always Horizontal (Stacked)": "horizontal"
+        }
+    },
+    "dwindle-default-split-ratio-pct": {
+        "type": "spinbutton",
+        "default": 50,
+        "min": 30,
+        "max": 70,
+        "step": 5,
+        "units": "%",
+        "description": "Default split ratio for new Dwindle nodes"
+    },
+    "dwindle-new-window-placement": {
+        "type": "combobox",
+        "default": "focused",
+        "description": "Where new windows are inserted in Dwindle",
+        "options": {
+            "Split Focused Window": "focused",
+            "Append at End of Spiral": "end",
+            "Insert at Start of Tree": "start"
+        }
+    },
+    "dwindle-resize-step-pct": {
+        "type": "spinbutton",
+        "default": 5,
+        "min": 2,
+        "max": 20,
+        "step": 1,
+        "units": "%",
+        "description": "Keyboard resize step in Dwindle (Super+= / Super+-)"
+    },
+    "dwindle-respect-min-size": {
+        "type": "switch",
+        "default": true,
+        "description": "Compensate for X11 minimum window size hints (e.g. Chromium 500px)"
+    },
+    "master-ratio-pct": {
+        "type": "spinbutton",
+        "default": 55,
+        "min": 20,
+        "max": 80,
+        "step": 1,
+        "units": "%",
+        "description": "Default Master area width/height (mfact)"
+    },
+    "master-count": {
+        "type": "spinbutton",
+        "default": 1,
+        "min": 1,
+        "max": 6,
+        "step": 1,
+        "units": "windows",
+        "description": "Default number of windows in the Master area (nmaster)"
+    },
+    "master-orientation": {
+        "type": "combobox",
+        "default": "left",
+        "description": "Master area position (in Master & Stack layout)",
+        "options": {
+            "Master on Left": "left",
+            "Master on Right": "right",
+            "Master on Top": "top",
+            "Master on Bottom": "bottom"
+        }
+    },
+    "master-new-window-placement": {
+        "type": "combobox",
+        "default": "stack-end",
+        "description": "New window placement in Master & Stack",
+        "options": {
+            "Bottom of Stack": "stack-end",
+            "Top of Stack": "stack-top",
+            "Become Master Immediately": "master"
+        }
+    },
+    "master-single-window-width-pct": {
+        "type": "spinbutton",
+        "default": 100,
+        "min": 40,
+        "max": 100,
+        "step": 5,
+        "units": "%",
+        "description": "Single window width in Master & Stack (100% = full width)"
+    },
+    "centered-master-ratio-pct": {
+        "type": "spinbutton",
+        "default": 50,
+        "min": 25,
+        "max": 75,
+        "step": 5,
+        "units": "%",
+        "description": "Center column width in Centered Master"
+    },
+    "centered-master-count": {
+        "type": "spinbutton",
+        "default": 1,
+        "min": 1,
+        "max": 4,
+        "step": 1,
+        "units": "windows",
+        "description": "Number of windows in Center Master column"
+    },
+    "centered-master-side-balance": {
+        "type": "combobox",
+        "default": "alternate",
+        "description": "Side columns distribution in Centered Master",
+        "options": {
+            "Alternate Right / Left": "alternate",
+            "Alternate Left / Right": "left-first",
+            "Equal Half Left / Right": "equal-split"
+        }
+    },
+    "centered-master-single-width-pct": {
+        "type": "spinbutton",
+        "default": 100,
+        "min": 40,
+        "max": 100,
+        "step": 5,
+        "units": "%",
+        "description": "Single window width in Centered Master"
+    },
+    "scrolling-column-width-pct": {
+        "type": "spinbutton",
+        "default": 60,
+        "min": 30,
+        "max": 100,
+        "step": 5,
+        "units": "%",
+        "description": "Default column width in Scrolling layout (Niri/PaperWM)"
+    },
+    "scrolling-single-column-width-pct": {
+        "type": "spinbutton",
+        "default": 100,
+        "min": 40,
+        "max": 100,
+        "step": 5,
+        "units": "%",
+        "description": "Single window column width in Scrolling layout"
+    },
+    "scrolling-focus-alignment": {
+        "type": "combobox",
+        "default": "edge",
+        "description": "Viewport alignment on focused column in Scrolling layout",
+        "options": {
+            "Scroll at Screen Edges (Niri style)": "edge",
+            "Always Center Focused Column (PaperWM style)": "center"
+        }
+    },
+    "scrolling-min-visible-width-px": {
+        "type": "spinbutton",
+        "default": 140,
+        "min": 80,
+        "max": 300,
+        "step": 20,
+        "units": "px",
+        "description": "Minimum visible width before edge peek in Scrolling layout"
+    },
+    "scrolling-resize-step-pct": {
+        "type": "spinbutton",
+        "default": 8,
+        "min": 2,
+        "max": 20,
+        "step": 2,
+        "units": "%",
+        "description": "Column width resize step in Scrolling layout"
+    },
+    "monocle-zen-width-pct": {
+        "type": "spinbutton",
+        "default": 100,
+        "min": 40,
+        "max": 100,
+        "step": 5,
+        "units": "%",
+        "description": "Window width in Monocle / Zen mode (100% = full screen, <100% = centered Zen)"
+    },
+    "monocle-zen-height-pct": {
+        "type": "spinbutton",
+        "default": 100,
+        "min": 50,
+        "max": 100,
+        "step": 5,
+        "units": "%",
+        "description": "Window height in Monocle / Zen mode"
+    },
+    "monocle-outer-margin-px": {
+        "type": "spinbutton",
+        "default": 0,
+        "min": 0,
+        "max": 96,
+        "step": 4,
+        "units": "px",
+        "description": "Extra margin around Monocle / Zen deck"
+    },
+    "monocle-wrap-navigation": {
+        "type": "switch",
+        "default": true,
+        "description": "Wrap-around directional navigation in Monocle deck"
+    },
+    "grid-max-cols": {
+        "type": "spinbutton",
+        "default": 0,
+        "min": 0,
+        "max": 6,
+        "step": 1,
+        "units": "cols",
+        "description": "Max columns in Balanced Grid (0 = Automatic sqrt(N))"
+    },
+    "grid-last-row-behavior": {
+        "type": "combobox",
+        "default": "stretch",
+        "description": "Incomplete last row alignment in Balanced Grid",
+        "options": {
+            "Stretch to Fill Row": "stretch",
+            "Center Cells": "center",
+            "Align Left": "left"
+        }
+    },
+    "floating-center-new-windows": {
+        "type": "switch",
+        "default": false,
+        "description": "Automatically center newly opened windows in Floating layout"
+    },
+    "floating-center-width-pct": {
+        "type": "spinbutton",
+        "default": 70,
+        "min": 35,
+        "max": 95,
+        "step": 5,
+        "units": "%",
+        "description": "Window width for Center Window action (Super+C)"
+    },
+    "floating-center-height-pct": {
+        "type": "spinbutton",
+        "default": 72,
+        "min": 35,
+        "max": 95,
+        "step": 5,
+        "units": "%",
+        "description": "Window height for Center Window action (Super+C)"
+    },
+    "inner-gap": {
+        "type": "spinbutton",
+        "default": 8,
+        "min": 0,
+        "max": 48,
+        "step": 2,
+        "units": "px",
+        "description": "Inner gap between windows"
+    },
+    "outer-gap": {
+        "type": "spinbutton",
+        "default": 8,
+        "min": 0,
+        "max": 48,
+        "step": 2,
+        "units": "px",
+        "description": "Outer gap from monitor edges / panels"
+    },
+    "smart-gaps": {
+        "type": "switch",
+        "default": false,
+        "description": "Smart Gaps (No Gaps When Only): remove outer gap and border when only 1 window is open"
+    },
+    "btn-cycle-layout": {
+        "type": "button",
+        "description": "Cycle Layout on Current Workspace",
+        "callback": "onCycleLayoutClicked"
+    },
+    "btn-open-grid": {
+        "type": "button",
+        "description": "Open Quick Snap Grid (Super+G)",
+        "callback": "onOpenQuickGridClicked"
+    },
+    "btn-reset-ratios": {
+        "type": "button",
+        "description": "Reset Ratios and Splits on Current Workspace",
+        "callback": "onResetRatiosClicked"
+    },
+    "mouse-drag-swap": {
+        "type": "switch",
+        "default": true,
+        "description": "Drag with mouse to swap windows (with live preview) + Ctrl+Drag for Edge Snap"
+    },
+    "mouse-edge-resize": {
+        "type": "switch",
+        "default": true,
+        "description": "Resizing a window border with the mouse also resizes adjacent tiled windows"
+    },
+    "active-border-enabled": {
+        "type": "switch",
+        "default": true,
+        "description": "Show colored border frame around the active window"
+    },
+    "cursor-follows-focus": {
+        "type": "switch",
+        "default": false,
+        "description": "Move pointer to newly focused window on keyboard navigation"
+    },
+    "active-border-color": {
+        "type": "colorchooser",
+        "default": "rgba(94, 129, 244, 0.95)",
+        "description": "Active window border color",
+        "dependency": "active-border-enabled"
+    },
+    "active-border-state-colors": {
+        "type": "switch",
+        "default": true,
+        "description": "Use distinct border colors for Floating and Stacked/Tabbed windows",
+        "dependency": "active-border-enabled"
+    },
+    "active-border-floating-color": {
+        "type": "colorchooser",
+        "default": "rgba(245, 194, 17, 0.95)",
+        "description": "Active border color for Floating & Scratchpad windows",
+        "dependency": "active-border-state-colors"
+    },
+    "active-border-stacked-color": {
+        "type": "colorchooser",
+        "default": "rgba(180, 142, 173, 0.95)",
+        "description": "Active border color for Stacked & Tabbed windows",
+        "dependency": "active-border-state-colors"
+    },
+    "active-border-width": {
+        "type": "spinbutton",
+        "default": 3,
+        "min": 1,
+        "max": 10,
+        "step": 1,
+        "units": "px",
+        "description": "Active window border thickness",
+        "dependency": "active-border-enabled"
+    },
+    "active-border-radius": {
+        "type": "spinbutton",
+        "default": 8,
+        "min": 0,
+        "max": 24,
+        "step": 1,
+        "units": "px",
+        "description": "Active window border corner radius",
+        "dependency": "active-border-enabled"
+    },
+    "show-panel-indicator": {
+        "type": "switch",
+        "default": true,
+        "description": "Show Layout Selector icon in the Cinnamon panel"
+    },
+    "show-osd": {
+        "type": "switch",
+        "default": true,
+        "description": "Show on-screen HUD notification when changing layout or window state"
+    },
+    "grid-cols": {
+        "type": "spinbutton",
+        "default": 4,
+        "min": 2,
+        "max": 8,
+        "step": 1,
+        "units": "columns",
+        "description": "Number of columns in Quick Snap Grid (Super+G)"
+    },
+    "grid-rows": {
+        "type": "spinbutton",
+        "default": 3,
+        "min": 2,
+        "max": 6,
+        "step": 1,
+        "units": "rows",
+        "description": "Number of rows in Quick Snap Grid (Super+G)"
+    },
+    "floating-classes": {
+        "type": "entry",
+        "default": "Gnome-calculator,Pavucontrol,Nm-connection-editor,Blueman-manager,org.gnome.NautilusPreviewer,Mintinstall.py,Gdebi-gtk,Timeshift-gtk,Cinnamon-settings.py",
+        "description": "Always-Floating applications (comma-separated WM_CLASS or title)"
+    },
+    "custom-window-rules": {
+        "type": "textview",
+        "default": "# Examples (one per line or comma-separated):\n# Spotify:workspace=4\n# KeePassXC:scratchpad\n# Steam:float",
+        "height": 130,
+        "description": "Advanced rules (format: App:float | App:tile | App:scratchpad | App:workspace=N)"
+    },
+    "scratchpad-width-pct": {
+        "type": "spinbutton",
+        "default": 75,
+        "min": 30,
+        "max": 95,
+        "step": 5,
+        "units": "%",
+        "description": "Scratchpad window width relative to monitor"
+    },
+    "scratchpad-height-pct": {
+        "type": "spinbutton",
+        "default": 70,
+        "min": 30,
+        "max": 95,
+        "step": 5,
+        "units": "%",
+        "description": "Scratchpad window height relative to monitor"
+    },
+
+    "kb-focus-left": {
+        "type": "keybinding",
+        "default": "<Super>h::<Super>Left",
+        "description": "Move focus Left"
+    },
+    "kb-focus-right": {
+        "type": "keybinding",
+        "default": "<Super>l::<Super>Right",
+        "description": "Move focus Right"
+    },
+    "kb-focus-up": {
+        "type": "keybinding",
+        "default": "<Super>k::<Super>Up",
+        "description": "Move focus Up"
+    },
+    "kb-focus-down": {
+        "type": "keybinding",
+        "default": "<Super>j::<Super>Down",
+        "description": "Move focus Down"
+    },
+    "kb-swap-left": {
+        "type": "keybinding",
+        "default": "<Super><Shift>h::<Super><Shift>Left",
+        "description": "Swap window Left"
+    },
+    "kb-swap-right": {
+        "type": "keybinding",
+        "default": "<Super><Shift>l::<Super><Shift>Right",
+        "description": "Swap window Right"
+    },
+    "kb-swap-up": {
+        "type": "keybinding",
+        "default": "<Super><Shift>k::<Super><Shift>Up",
+        "description": "Swap window Up"
+    },
+    "kb-swap-down": {
+        "type": "keybinding",
+        "default": "<Super><Shift>j::<Super><Shift>Down",
+        "description": "Swap window Down"
+    },
+    "kb-promote-master": {
+        "type": "keybinding",
+        "default": "<Super>Return",
+        "description": "Promote active window to Master (or swap with Master)"
+    },
+    "kb-cycle-layout": {
+        "type": "keybinding",
+        "default": "<Super>space",
+        "description": "Switch to next Layout"
+    },
+    "kb-cycle-layout-back": {
+        "type": "keybinding",
+        "default": "<Super><Shift>space",
+        "description": "Switch to previous Layout"
+    },
+    "kb-toggle-floating": {
+        "type": "keybinding",
+        "default": "<Super>f",
+        "description": "Toggle Floating for active window"
+    },
+    "kb-toggle-tiling": {
+        "type": "keybinding",
+        "default": "<Super>t",
+        "description": "Enable / Pause Auto-Tiling on current workspace"
+    },
+    "kb-toggle-monocle": {
+        "type": "keybinding",
+        "default": "<Super>m::<Super>z",
+        "description": "Toggle Monocle Zoom on active window"
+    },
+    "kb-increase-ratio": {
+        "type": "keybinding",
+        "default": "<Super>equal::<Super>bracketright::<Super>plus::<Super>KP_Add",
+        "description": "Widen Master area / active split"
+    },
+    "kb-decrease-ratio": {
+        "type": "keybinding",
+        "default": "<Super>minus::<Super>bracketleft::<Super>KP_Subtract",
+        "description": "Narrow Master area / active split"
+    },
+    "kb-increase-master-count": {
+        "type": "keybinding",
+        "default": "<Super>period",
+        "description": "Increase number of windows in Master area"
+    },
+    "kb-decrease-master-count": {
+        "type": "keybinding",
+        "default": "<Super>comma",
+        "description": "Decrease number of windows in Master area"
+    },
+    "kb-rotate-orientation": {
+        "type": "keybinding",
+        "default": "<Super>o",
+        "description": "Rotate Master orientation or BSP split direction"
+    },
+    "kb-resize-mode": {
+        "type": "keybinding",
+        "default": "<Super>r",
+        "description": "Enter / Exit Modal Resize Mode"
+    },
+    "kb-scratchpad-toggle": {
+        "type": "keybinding",
+        "default": "<Super>s::<Super>grave",
+        "description": "Show / Hide Scratchpad window"
+    },
+    "kb-scratchpad-assign": {
+        "type": "keybinding",
+        "default": "<Super><Shift>s",
+        "description": "Add / Remove active window from Scratchpad"
+    },
+    "kb-quick-grid": {
+        "type": "keybinding",
+        "default": "<Super>g",
+        "description": "Open interactive Quick Snap Grid (gTile style)"
+    },
+    "kb-center-window": {
+        "type": "keybinding",
+        "default": "<Super>c",
+        "description": "Float and center active window"
+    },
+    "kb-toggle-tab-group": {
+        "type": "keybinding",
+        "default": "<Super>w::<Super><Shift>t",
+        "description": "Group / Ungroup active window in a Manual Tab Group"
+    },
+    "kb-move-workspace-prev": {
+        "type": "keybinding",
+        "default": "<Super><Shift>Page_Up::<Super><Alt>Left",
+        "description": "Move focused window to previous workspace"
+    },
+    "kb-move-workspace-next": {
+        "type": "keybinding",
+        "default": "<Super><Shift>Page_Down::<Super><Alt>Right",
+        "description": "Move focused window to next workspace"
+    },
+    "kb-move-monitor-next": {
+        "type": "keybinding",
+        "default": "<Super><Shift>o",
+        "description": "Move focused window to next monitor"
+    },
+    "kb-focus-monitor-next": {
+        "type": "keybinding",
+        "default": "<Super><Alt>o",
+        "description": "Focus next monitor"
+    }
+}

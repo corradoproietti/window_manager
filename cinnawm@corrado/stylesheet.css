@@ -1,0 +1,308 @@
+/* CinnaWM - Stylesheet for Cinnamon St / Clutter Actors */
+
+.cinnawm-active-border {
+    border: 3px solid rgba(94, 129, 244, 0.95);
+    border-radius: 11px;
+    background-color: transparent;
+    box-shadow: none;
+}
+
+.cinnawm-stacked-title-badge {
+    background-color: rgba(24, 28, 44, 0.90);
+    border: 1px solid rgba(130, 170, 255, 0.85);
+    border-radius: 5px;
+    padding: 3px;
+}
+
+.cinnawm-drop-preview {
+    background-color: rgba(94, 129, 244, 0.22);
+    border: 3px solid rgba(120, 160, 255, 0.95);
+    border-radius: 10px;
+    padding: 12px;
+}
+
+.cinnawm-drop-preview-label {
+    color: #ffffff;
+    background-color: rgba(20, 24, 38, 0.88);
+    border: 1px solid rgba(120, 160, 255, 0.65);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-weight: bold;
+    font-size: 13pt;
+}
+
+.cinnawm-resize-preview-tile {
+    background-color: rgba(94, 129, 244, 0.16);
+    border: 2px solid rgba(120, 160, 255, 0.92);
+    border-radius: 8px;
+}
+
+.cinnawm-resize-preview-tile.primary {
+    background-color: rgba(94, 129, 244, 0.25);
+    border: 3px solid rgba(135, 175, 255, 0.98);
+    border-radius: 8px;
+}
+
+.cinnawm-resize-preview-tile.unchanged {
+    background-color: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(169, 177, 214, 0.40);
+    border-radius: 8px;
+}
+
+.cinnawm-resize-preview-label {
+    color: #ffffff;
+    background-color: rgba(20, 24, 38, 0.90);
+    border: 1px solid rgba(120, 160, 255, 0.70);
+    border-radius: 7px;
+    padding: 5px 12px;
+    font-family: monospace;
+    font-weight: bold;
+    font-size: 11pt;
+}
+
+/* HUD / OSD Notification */
+.cinnawm-osd-container {
+    background-color: rgba(20, 23, 34, 0.95);
+    border: 2px solid rgba(94, 129, 244, 0.85);
+    border-radius: 14px;
+    padding: 14px 22px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+}
+
+.cinnawm-osd-icon-bin {
+    margin-right: 12px;
+}
+
+.cinnawm-osd-badge {
+    color: #7aa2f7;
+    background-color: rgba(94, 129, 244, 0.18);
+    border: 1px solid rgba(94, 129, 244, 0.45);
+    border-radius: 8px;
+    padding: 4px 10px;
+    margin-right: 14px;
+    font-family: monospace;
+    font-weight: bold;
+    font-size: 11.5pt;
+}
+
+.cinnawm-osd-title {
+    color: #f8f9fa;
+    font-weight: bold;
+    font-size: 11.5pt;
+    margin: 0;
+    padding: 0;
+}
+
+.cinnawm-osd-subtitle {
+    color: #a9b1d6;
+    font-size: 11pt;
+    margin: 0;
+    padding: 0;
+}
+
+/* Panel Indicator (Clean Icon Only, No Container Box) */
+.cinnawm-panel-bar {
+    padding: 0 6px;
+    margin: 0;
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.cinnawm-panel-bar:hover {
+    background-color: transparent;
+    border: none;
+}
+
+.cinnawm-panel-icon {
+    margin: 0;
+}
+
+/* Minimal Panel Layout Selector Popup Menu (Linux Mint Mint-Y Style) */
+.cinnawm-selector-backdrop {
+    background-color: rgba(0, 0, 0, 0.01);
+}
+
+.cinnawm-selector-popup {
+    background-color: #27272b;
+    border: 1px solid #18181b;
+    border-radius: 5px;
+    padding: 5px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.50);
+    min-width: 248px;
+}
+
+.cinnawm-selector-items {
+    margin-bottom: 2px;
+}
+
+.cinnawm-selector-item {
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 0 10px;
+    margin: 1px 0;
+}
+
+.cinnawm-selector-item:hover {
+    background-color: #35353b;
+}
+
+.cinnawm-selector-item.selected {
+    background-color: rgba(255, 113, 57, 0.20);
+    border-color: rgba(255, 113, 57, 0.45);
+}
+
+.cinnawm-selector-icon {
+    margin-right: 10px;
+}
+
+.cinnawm-selector-item-title {
+    color: #e1e1e1;
+    font-weight: normal;
+    margin-right: 10px;
+}
+
+.cinnawm-selector-item.selected .cinnawm-selector-item-title {
+    color: #ffffff;
+    font-weight: bold;
+}
+
+.cinnawm-selector-check {
+    color: #ff7139;
+    font-weight: bold;
+    margin-left: 6px;
+}
+
+.cinnawm-selector-check.on-accent {
+    color: #ffffff;
+}
+
+.cinnawm-selector-divider {
+    height: 1px;
+    background-color: #18181b;
+    margin: 4px 2px;
+}
+
+.cinnawm-selector-footer {
+    padding-top: 0;
+}
+
+.cinnawm-selector-settings-btn {
+    background-color: transparent;
+    border: none;
+    border-radius: 4px;
+    padding: 0 10px;
+    margin: 1px 0;
+}
+
+.cinnawm-selector-settings-btn:hover {
+    background-color: #35353b;
+}
+
+.cinnawm-selector-settings-icon {
+    color: #b0b0b0;
+    margin-right: 10px;
+}
+
+.cinnawm-selector-settings-label {
+    color: #e1e1e1;
+    font-weight: 500;
+}
+
+/* Modal Resize Banner */
+.cinnawm-resize-banner {
+    background-color: rgba(224, 108, 117, 0.95);
+    border: 2px solid #ffffff;
+    border-radius: 10px;
+    padding: 10px 20px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+}
+
+.cinnawm-resize-banner-label {
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 11pt;
+}
+
+/* Quick Snap Grid Overlay (Super+G) */
+.cinnawm-grid-backdrop {
+    background-color: rgba(10, 12, 20, 0.45);
+}
+
+.cinnawm-grid-dialog {
+    background-color: rgba(22, 25, 37, 0.96);
+    border: 2px solid rgba(94, 129, 244, 0.85);
+    border-radius: 16px;
+    padding: 20px 24px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.65);
+}
+
+.cinnawm-grid-header {
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 14pt;
+    margin-bottom: 4px;
+}
+
+.cinnawm-grid-subheader {
+    color: #9aa5ce;
+    font-size: 9.5pt;
+    margin-bottom: 14px;
+}
+
+.cinnawm-grid-presets {
+    margin-bottom: 14px;
+}
+
+.cinnawm-grid-preset-btn {
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #e5e9f0;
+    padding: 6px 12px;
+    margin: 0 4px;
+    font-weight: bold;
+    font-size: 9.5pt;
+}
+
+.cinnawm-grid-preset-btn:hover {
+    background-color: rgba(94, 129, 244, 0.45);
+    border-color: rgba(122, 162, 247, 0.95);
+    color: #ffffff;
+}
+
+.cinnawm-grid-table {
+    padding: 6px;
+}
+
+.cinnawm-grid-row {
+    margin: 3px 0;
+}
+
+.cinnawm-grid-cell {
+    width: 110px;
+    height: 74px;
+    margin: 0 3px;
+    background-color: rgba(255, 255, 255, 0.07);
+    border: 2px solid rgba(255, 255, 255, 0.18);
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.55);
+    font-family: monospace;
+    font-weight: bold;
+    font-size: 10.5pt;
+}
+
+.cinnawm-grid-cell:hover {
+    background-color: rgba(94, 129, 244, 0.28);
+    border-color: rgba(122, 162, 247, 0.8);
+    color: #ffffff;
+}
+
+.cinnawm-grid-cell.selected {
+    background-color: rgba(94, 129, 244, 0.55);
+    border-color: #7aa2f7;
+    color: #ffffff;
+}
+
