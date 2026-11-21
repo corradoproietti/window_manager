@@ -26,11 +26,11 @@ When an area becomes too tight (`overflowMinWidthPx` / `overflowMinHeightPx`), o
 
 ### From Release Archive
 
-Download the installable release archive (`cinnawm@corradoproietti-v1.0.1.zip`) and extract it into your Cinnamon extensions directory (or run `bash install.sh --zip=cinnawm@corradoproietti-v1.0.1.zip`):
+Download the installable release archive (`cinnawm@corradoproietti-v1.0.2.zip`) and extract it into your Cinnamon extensions directory (or run `bash install.sh --zip=cinnawm@corradoproietti-v1.0.2.zip`):
 
 ```bash
 mkdir -p "${XDG_DATA_HOME:-$HOME/.local/share}/cinnamon/extensions"
-unzip -o cinnawm@corradoproietti-v1.0.1.zip -d "${XDG_DATA_HOME:-$HOME/.local/share}/cinnamon/extensions/"
+unzip -o cinnawm@corradoproietti-v1.0.2.zip -d "${XDG_DATA_HOME:-$HOME/.local/share}/cinnamon/extensions/"
 ```
 
 Then enable **CinnaWM** in **System Settings → Extensions** (precompiled translations are bundled inside the archive).

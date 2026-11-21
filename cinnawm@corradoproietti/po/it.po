@@ -3,7 +3,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: cinnawm@corradoproietti 1.0.1\n"
+"Project-Id-Version: cinnawm@corradoproietti 1.0.2\n"
 "POT-Creation-Date: 2026-11-14 18:00+0100\n"
 "PO-Revision-Date: 2026-11-14 18:00+0100\n"
 "Last-Translator: CinnaWM Contributors\n"
