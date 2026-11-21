@@ -859,11 +859,11 @@ print('=== 4k. Testing Extracted Modules (bsp-tree.js, window-rules.js, state-st
     let normCtrl = KeybindingsMod.normalizeAccelerator('<Control>Return');
     assert(normCtrl && KeybindingsMod.normalizeAccelerator('<Ctrl>Return') === normCtrl,
         'normalizeAccelerator should normalize <Ctrl>Return and <Control>Return to identical keyval:mods strings');
-    assert(Array.isArray(KeybindingsMod.KEYBINDING_SETTINGS_MAP) && KeybindingsMod.KEYBINDING_SETTINGS_MAP.length === 29,
-        'KEYBINDING_SETTINGS_MAP should contain all 29 keybinding definitions');
+    assert(Array.isArray(KeybindingsMod.KEYBINDING_SETTINGS_MAP) && KeybindingsMod.KEYBINDING_SETTINGS_MAP.length === 31,
+        'KEYBINDING_SETTINGS_MAP should contain all 31 keybinding definitions');
 
     let mappedKbProps = new Set(KeybindingsMod.KEYBINDING_SETTINGS_MAP.map(([, prop]) => prop));
-    for (let prop of ['kbMoveWorkspacePrev', 'kbMoveWorkspaceNext', 'kbMoveMonitorNext', 'kbFocusMonitorNext']) {
+    for (let prop of ['kbMoveWorkspacePrev', 'kbMoveWorkspaceNext', 'kbMoveMonitorNext', 'kbFocusMonitorNext', 'kbTogglePip', 'kbWindowSwitcher']) {
         assert(mappedKbProps.has(prop), `KEYBINDING_SETTINGS_MAP must include ${prop}`);
         assert(Boolean(KeybindingsMod.normalizeAccelerator(defaults[prop].split('::')[0])),
             `${prop} default primary accelerator must parse cleanly: ${defaults[prop]}`);
@@ -876,7 +876,7 @@ print('=== 4k. Testing Extracted Modules (bsp-tree.js, window-rules.js, state-st
     for (let prop of Object.keys(defaults)) {
         assert(mappedAllProps.has(prop), `Every defaults.json property (${prop}) must be mapped in VISUAL_SETTINGS_MAP or KEYBINDING_SETTINGS_MAP`);
     }
-    print('  [OK] Keybindings.normalizeAccelerator, 29 KEYBINDING_SETTINGS_MAP entries & full defaults parity');
+    print('  [OK] Keybindings.normalizeAccelerator, 31 KEYBINDING_SETTINGS_MAP entries & full defaults parity');
 
     // Smooth Stack / Tab Group directional exit test (exiting sibling group finds external tile)
     let leftTab1 = { id: 101, rect: { x: 0, y: 0, width: 950, height: 1080 } };
@@ -1079,6 +1079,8 @@ print('=== 4m. Regression Tests for Fullscreen TabGroups, State Helpers, Chained
         moveFocusedToWorkspace: (delta) => { ipcEvents.push(['moveWs', delta]); return true; },
         moveFocusedToAdjacentMonitor: (step) => { ipcEvents.push(['moveMon', step]); return true; },
         focusMonitorStep: (step) => { ipcEvents.push(['focusMon', step]); return true; },
+        toggleFocusedPip: () => { ipcEvents.push(['pip']); return true; },
+        openWindowSwitcher: () => { ipcEvents.push(['switcher']); },
         getOpenWindowsInfo: () => ([{ id: 42, title: 'Terminal', workspace: 0, monitor: 0, floating: false }])
     };
     let svc = new IpcServiceMod.CinnaWMIpcService(mockWm);
@@ -1098,14 +1100,15 @@ print('=== 4m. Regression Tests for Fullscreen TabGroups, State Helpers, Chained
         'ToggleFloating, ToggleTiling, and ToggleScratchpad must return true');
     assert(svc.MoveToWorkspace(-1) === true && svc.MoveToWorkspace(0) === false,
         'MoveToWorkspace must validate non-zero delta');
-    assert(svc.MoveToNextMonitor() === true && svc.FocusNextMonitor() === true,
-        'Monitor action methods must delegate cleanly');
+    assert(svc.MoveToNextMonitor() === true && svc.FocusNextMonitor() === true &&
+           svc.TogglePip() === true && svc.OpenWindowSwitcher() === true,
+        'Monitor, PiP, and Window Switcher action methods must delegate cleanly');
     let openWins = JSON.parse(svc.GetOpenWindows());
     assert(Array.isArray(openWins) && openWins.length === 1 && openWins[0].id === 42,
         'GetOpenWindows must serialize open window descriptors cleanly');
     assert(svc.emitStateChanged('layout-changed') === false,
         'emitStateChanged must be a safe no-op returning false when not exported on D-Bus');
-    assert(ipcEvents.length === 14 && ipcEvents[0][2] === 12 && ipcEvents[1][1] === 'grid' && ipcEvents[4][1] === -1 && ipcEvents[5][1] === 1,
+    assert(ipcEvents.length === 16 && ipcEvents[0][2] === 12 && ipcEvents[1][1] === 'grid' && ipcEvents[4][1] === -1 && ipcEvents[5][1] === 1,
         'CinnaWMIpcService methods must delegate all arguments cleanly to CinnaWMExtension');
     print('  [OK] CinnaWMIpcService D-Bus signal XML & CLI action contract methods');
 
@@ -1166,6 +1169,135 @@ print('=== 4m. Regression Tests for Fullscreen TabGroups, State Helpers, Chained
     assert(cRules1 === cRules2 && cFloat1 === cFloat2 && cFloat1.length === 2,
         'WindowRules caches must return identical parsed array references on cache hits');
     print('  [OK] WindowRules word-boundary matching, title: prefix & parsed-rule caching');
+
+    // 8. Error-handling & exception safety (CinnaWMIpcService & WindowRules safe helpers)
+    assert(svc.UpdateSetting('nonExistentProp', 'true') === false,
+        'UpdateSetting must reject unknown setting properties');
+    assert(svc.UpdateSetting('innerGap', '"not-a-number"') === false,
+        'UpdateSetting must reject mismatched setting types');
+    assert(svc.UpdateSetting('innerGap', 'null') === false,
+        'UpdateSetting must reject null values for typed settings');
+    assert(svc.UpdateSetting('innerGap', '{bad-json') === false,
+        'UpdateSetting must reject malformed JSON payloads');
+    assert(svc.ActivateLayout('   ') === false,
+        'ActivateLayout must reject empty/whitespace layout IDs');
+
+    let throwingWm = {
+        uuid: 'test@cinnawm',
+        settings: { innerGap: 8, defaultLayout: 'dwindle' },
+        getCurrentState: () => { throw new Error('boom state'); },
+        updateSettingValue: () => { throw new Error('boom update'); },
+        setLayoutById: () => { throw new Error('boom layout'); },
+        resetCurrentLayoutRatios: () => { throw new Error('boom reset'); },
+        importSettingsSnapshot: () => { throw new Error('boom import'); },
+        cycleLayout: () => { throw new Error('boom cycle'); },
+        focusDirectional: () => { throw new Error('boom focus'); },
+        swapDirectional: () => { throw new Error('boom swap'); },
+        toggleFocusedFloating: () => { throw new Error('boom float'); },
+        toggleWorkspaceTiling: () => { throw new Error('boom tiling'); },
+        handleScratchpadToggle: () => { throw new Error('boom scratchpad'); },
+        moveFocusedToWorkspace: () => { throw new Error('boom moveWs'); },
+        moveFocusedToAdjacentMonitor: () => { throw new Error('boom moveMon'); },
+        focusMonitorStep: () => { throw new Error('boom focusMon'); },
+        toggleFocusedPip: () => { throw new Error('boom pip'); },
+        openWindowSwitcher: () => { throw new Error('boom switcher'); },
+        getOpenWindowsInfo: () => { throw new Error('boom windows'); }
+    };
+    let safeSvc = new IpcServiceMod.CinnaWMIpcService(throwingWm);
+    assert(safeSvc.GetSnapshot() === '{}', 'GetSnapshot must return "{}" on exception');
+    assert(safeSvc.UpdateSetting('innerGap', '10') === false, 'UpdateSetting must return false on exception');
+    assert(safeSvc.ActivateLayout('grid') === false, 'ActivateLayout must return false on exception');
+    assert(safeSvc.ResetRatios() === false, 'ResetRatios must return false on exception');
+    assert(safeSvc.ImportSettings('{"innerGap":10}') === false, 'ImportSettings must return false on exception');
+    assert(safeSvc.CycleLayout(1) === false, 'CycleLayout must return false on exception');
+    assert(safeSvc.FocusDirection('left') === false, 'FocusDirection must return false on exception');
+    assert(safeSvc.SwapDirection('right') === false, 'SwapDirection must return false on exception');
+    assert(safeSvc.ToggleFloating() === false, 'ToggleFloating must return false on exception');
+    assert(safeSvc.ToggleTiling() === false, 'ToggleTiling must return false on exception');
+    assert(safeSvc.ToggleScratchpad() === false, 'ToggleScratchpad must return false on exception');
+    assert(safeSvc.MoveToWorkspace(1) === false, 'MoveToWorkspace must return false on exception');
+    assert(safeSvc.MoveToNextMonitor() === false, 'MoveToNextMonitor must return false on exception');
+    assert(safeSvc.FocusNextMonitor() === false, 'FocusNextMonitor must return false on exception');
+    assert(safeSvc.TogglePip() === false, 'TogglePip must return false on exception');
+    assert(safeSvc.OpenWindowSwitcher() === false, 'OpenWindowSwitcher must return false on exception');
+    assert(safeSvc.GetOpenWindows() === '[]', 'GetOpenWindows must return "[]" on exception');
+
+    let deadWin = {
+        raise: () => { throw new Error('disposed'); },
+        activate: () => { throw new Error('disposed'); },
+        get_maximized: () => true,
+        unmaximize: () => { throw new Error('disposed'); },
+        move_resize_frame: () => { throw new Error('disposed'); },
+        move_frame: () => { throw new Error('disposed'); },
+        get_xwindow: () => { throw new Error('disposed'); }
+    };
+    assert(WindowRulesMod.safeRaiseWindow(null) === false && WindowRulesMod.safeRaiseWindow(deadWin) === false,
+        'safeRaiseWindow must safely handle null and throwing windows');
+    assert(WindowRulesMod.safeActivateWindow(null, 0) === false && WindowRulesMod.safeActivateWindow(deadWin, 0) === false,
+        'safeActivateWindow must safely handle null and throwing windows');
+    assert(WindowRulesMod.safeApplyWindowFrame(null, 0, 0, 100, 100) === false &&
+           WindowRulesMod.safeApplyWindowFrame(deadWin, 0, 0, 100, 100, true) === false,
+        'safeApplyWindowFrame must safely handle null and throwing windows');
+    WindowRulesMod.clearX11ResizeIncrements(
+        { _enabled: true, _clearedResizeIncXids: new Set(), _pendingResizeIncXids: new Set() },
+        deadWin
+    );
+    print('  [OK] Error-handling & exception safety (IPC fallback/validation + MetaWindow guards)');
+
+    // 9. New features 1, 2, 3, 4, 7 unit tests
+    // Feature #1: PiP Corner Geometry
+    let monWa = { x: 0, y: 28, width: 1920, height: 1052 };
+    let pipBR = Layouts.computeCornerRect(monWa, 'bottom-right', 25, 30, 16);
+    let pipTL = Layouts.computeCornerRect(monWa, 'top-left', 25, 30, 16);
+    assert(pipBR.x === 1920 - pipBR.width - 16 && pipBR.y === 28 + 1052 - pipBR.height - 16,
+        'computeCornerRect(bottom-right) must anchor window cleanly inside bottom-right corner');
+    assert(pipTL.x === 16 && pipTL.y === 28 + 16,
+        'computeCornerRect(top-left) must anchor window cleanly inside top-left corner');
+
+    // Feature #2: Quick Window & Tab Switcher filterWindowDescriptors
+    let swList = [
+        { id: 1, title: 'nvim main.rs', wmClass: 'Alacritty', workspace: 0, monitor: 0, floating: false, stacked: true, scratchpad: false, pip: false, minimized: false },
+        { id: 2, title: 'LoFi Radio - YouTube', wmClass: 'Chromium', workspace: 1, monitor: 0, floating: true, stacked: false, scratchpad: false, pip: true, minimized: false },
+        { id: 3, title: 'Notes.md', wmClass: 'FeatherPad', workspace: 2, monitor: 1, floating: true, stacked: false, scratchpad: true, pip: false, minimized: true }
+    ];
+    assert(WindowRulesMod.filterWindowDescriptors(swList, '').length === 3,
+        'Empty query must return all windows');
+    assert(WindowRulesMod.filterWindowDescriptors(swList, 'ws1 tab').length === 1 &&
+           WindowRulesMod.filterWindowDescriptors(swList, 'ws1 tab')[0].id === 1,
+        'Query "ws1 tab" must match stacked window on workspace 1');
+    assert(WindowRulesMod.filterWindowDescriptors(swList, 'pip radio')[0].id === 2,
+        'Query "pip radio" must match PiP video window');
+    assert(WindowRulesMod.filterWindowDescriptors(swList, 'scratchpad notes')[0].id === 3,
+        'Query "scratchpad notes" must match scratchpad note window');
+
+    // Feature #3: Portrait Monitor Auto-Orientation in Master & Stack
+    let portraitWa = { x: 0, y: 0, width: 1080, height: 1920 };
+    assert(Layouts.resolveEffectiveMasterOrientation('left', portraitWa, true) === 'top' &&
+           Layouts.resolveEffectiveMasterOrientation('right', portraitWa, true) === 'bottom' &&
+           Layouts.resolveEffectiveMasterOrientation('left', portraitWa, false) === 'left',
+        'resolveEffectiveMasterOrientation must rotate left/right -> top/bottom on portrait monitors when enabled');
+    let portState = new StateStoreMod.WorkspaceMonitorState({ defaultLayout: 'master-stack', masterOrientation: 'left' });
+    let portRects = Layouts.computeLayoutRects('master-stack', [1, 2], portraitWa, portState, { innerGap: 8, outerGap: 8, masterAutoOrientation: true });
+    assert(portRects.get(1).y < portRects.get(2).y && portRects.get(1).width === portRects.get(2).width,
+        'Portrait Master & Stack with auto-orientation must stack Master above secondary tiles vertically');
+
+    // Feature #4: Per-Workspace Default Layouts
+    let wsDefaultSettings = {
+        defaultLayout: 'dwindle',
+        workspaceDefaultLayouts: '1=dwindle, 2=scrolling, 4=monocle, invalid=grid, 99=nope'
+    };
+    let wsParsed = Layouts.parseWorkspaceDefaultLayouts(wsDefaultSettings.workspaceDefaultLayouts);
+    assert(wsParsed.size === 3 && wsParsed.get(0) === 'dwindle' && wsParsed.get(1) === 'scrolling' && wsParsed.get(3) === 'monocle',
+        'parseWorkspaceDefaultLayouts must parse valid workspace=layout entries');
+    let stWs2 = new StateStoreMod.WorkspaceMonitorState(wsDefaultSettings, 1);
+    let stWs3 = new StateStoreMod.WorkspaceMonitorState(wsDefaultSettings, 2);
+    assert(stWs2.layoutId === 'scrolling' && stWs3.layoutId === 'dwindle',
+        'WorkspaceMonitorState must use per-workspace override for WS 2 and fall back to global default for WS 3');
+
+    // Feature #7: Smart No-Border & Inactive Dimming settings schema validation
+    assert(defaults.smartNoBorder === false && defaults.inactiveDimmingEnabled === false && defaults.inactiveWindowOpacityPct === 88,
+        'Smart No-Border & Inactive Dimming defaults must be cleanly defined');
+    print('  [OK] Features 1, 2, 3, 4, 7 (PiP, Window Switcher, Portrait Rotation, WS Defaults, Smart No-Border / Dimming)');
 }
 
 print('=== 5. Syntax-Checking All Extension Modules ===');

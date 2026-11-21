@@ -226,8 +226,13 @@ class GrabController {
             }
             this.updateResizePreview(startPx, startPy);
 
-            GLib.idle_add(GLib.PRIORITY_HIGH, () => {
-                if (wm._grabState && wm._grabState.usePreviewResize) {
+            if (wm._previewIdleId) {
+                GLib.source_remove(wm._previewIdleId);
+                wm._previewIdleId = 0;
+            }
+            wm._previewIdleId = GLib.idle_add(GLib.PRIORITY_HIGH, () => {
+                wm._previewIdleId = 0;
+                if (wm._enabled && wm._grabState && wm._grabState.usePreviewResize) {
                     try {
                         if (typeof global.display.end_grab_op === 'function' &&
                             global.display.get_grab_op() !== Meta.GrabOp.NONE) {
@@ -323,46 +328,61 @@ class GrabController {
         this.stopDragPolling();
         let intervalMs = (wm._grabState && wm._grabState.usePreviewResize) ? 16 : 28;
         wm._dragPollTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, intervalMs, () => {
-            if (!wm._grabState || (!wm._grabState.isMoving && !wm._grabState.isResizing)) {
+            if (!wm._enabled || !wm._grabState || (!wm._grabState.isMoving && !wm._grabState.isResizing)) {
                 wm._dragPollTimeoutId = 0;
                 return GLib.SOURCE_REMOVE;
             }
 
-            if (wm._grabState.usePreviewResize) {
-                let [px, py, mods] = global.get_pointer();
-                let buttonMask = Clutter.ModifierType.BUTTON1_MASK |
-                                 Clutter.ModifierType.BUTTON2_MASK |
-                                 Clutter.ModifierType.BUTTON3_MASK;
-                if ((mods & buttonMask) === 0) {
+            try {
+                if (wm._grabState.usePreviewResize) {
+                    let [px, py, mods] = global.get_pointer();
+                    let buttonMask = Clutter.ModifierType.BUTTON1_MASK |
+                                     Clutter.ModifierType.BUTTON2_MASK |
+                                     Clutter.ModifierType.BUTTON3_MASK;
+                    if ((mods & buttonMask) === 0) {
+                        wm._dragPollTimeoutId = 0;
+                        this.finishPreviewResize(false);
+                        return GLib.SOURCE_REMOVE;
+                    }
+                    if (px !== wm._grabState.lastPx || py !== wm._grabState.lastPy) {
+                        wm._grabState.lastPx = px;
+                        wm._grabState.lastPy = py;
+                        this.updateResizePreview(px, py);
+                    }
+                    return GLib.SOURCE_CONTINUE;
+                }
+
+                if (typeof global.display.get_grab_op === 'function' &&
+                    global.display.get_grab_op() === Meta.GrabOp.NONE) {
                     wm._dragPollTimeoutId = 0;
-                    this.finishPreviewResize(false);
+                    wm._grabState = null;
+                    if (wm.dropPreview) wm.dropPreview.hide();
+                    if (wm.resizePreview) wm.resizePreview.hide();
                     return GLib.SOURCE_REMOVE;
                 }
-                if (px !== wm._grabState.lastPx || py !== wm._grabState.lastPy) {
-                    wm._grabState.lastPx = px;
-                    wm._grabState.lastPy = py;
-                    this.updateResizePreview(px, py);
+                if (wm._grabState.isMoving) {
+                    this.updateDragPreview();
                 }
                 return GLib.SOURCE_CONTINUE;
-            }
-
-            if (typeof global.display.get_grab_op === 'function' &&
-                global.display.get_grab_op() === Meta.GrabOp.NONE) {
+            } catch (e) {
+                if (typeof global !== 'undefined' && global.logError) {
+                    global.logError(`[${wm.uuid || 'cinnawm'}] Drag polling error: ${e}`);
+                }
                 wm._dragPollTimeoutId = 0;
                 wm._grabState = null;
                 if (wm.dropPreview) wm.dropPreview.hide();
                 if (wm.resizePreview) wm.resizePreview.hide();
                 return GLib.SOURCE_REMOVE;
             }
-            if (wm._grabState.isMoving) {
-                this.updateDragPreview();
-            }
-            return GLib.SOURCE_CONTINUE;
         });
     }
 
     stopDragPolling() {
         let wm = this.wm;
+        if (wm._previewIdleId) {
+            GLib.source_remove(wm._previewIdleId);
+            wm._previewIdleId = 0;
+        }
         if (wm._dragPollTimeoutId) {
             GLib.source_remove(wm._dragPollTimeoutId);
             wm._dragPollTimeoutId = 0;
@@ -798,7 +818,12 @@ class GrabController {
 
         if (state.layoutId === 'master-stack') {
             let masterCount = Layouts.clamp(state.masterCount || 1, 1, n);
-            let horizMaster = (state.masterOrientation === 'top' || state.masterOrientation === 'bottom');
+            let effOrient = Layouts.resolveEffectiveMasterOrientation(
+                state.masterOrientation,
+                area,
+                !wm.settings || wm.settings.masterAutoOrientation !== false
+            );
+            let horizMaster = (effOrient === 'top' || effOrient === 'bottom');
             if (n <= masterCount) {
                 this.resizeStackNeighborPair(
                     effectiveOrder,

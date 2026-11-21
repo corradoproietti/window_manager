@@ -72,6 +72,12 @@ const CINNAWM_IFACE_XML = `
     <method name="FocusNextMonitor">
       <arg type="b" direction="out" name="ok"/>
     </method>
+    <method name="TogglePip">
+      <arg type="b" direction="out" name="ok"/>
+    </method>
+    <method name="OpenWindowSwitcher">
+      <arg type="b" direction="out" name="ok"/>
+    </method>
     <method name="GetOpenWindows">
       <arg type="s" direction="out" name="windowsJson"/>
     </method>
@@ -106,47 +112,73 @@ class CinnaWMIpcService {
         }
     }
 
+    _safeCall(methodName, fallback, fn) {
+        if (!this.wm) return fallback;
+        try {
+            return fn();
+        } catch (e) {
+            if (typeof global !== 'undefined' && global.logError) {
+                global.logError(`[${this.wm.uuid || 'cinnawm'}] IPC ${methodName} failed: ${e}`);
+            }
+            return fallback;
+        }
+    }
+
+    _isValidSettingValue(prop, value) {
+        if (typeof prop !== 'string' || !this.wm || !this.wm.settings ||
+            !Object.prototype.hasOwnProperty.call(this.wm.settings, prop)) {
+            return false;
+        }
+        let expectedType = typeof this.wm.settings[prop];
+        if (typeof value !== expectedType) return false;
+        if (expectedType === 'number' && !Number.isFinite(value)) return false;
+        return true;
+    }
+
     GetSnapshot() {
-        if (!this.wm) return '{}';
-        let st = this.wm.getCurrentState();
-        let activeLayout = (!st.autoTile || st.layoutId === 'floating') ? 'floating' : st.layoutId;
-        return JSON.stringify({
-            settings: this.wm.settings,
-            activeLayout
+        return this._safeCall('GetSnapshot', '{}', () => {
+            let st = this.wm.getCurrentState();
+            let activeLayout = (!st.autoTile || st.layoutId === 'floating') ? 'floating' : st.layoutId;
+            return JSON.stringify({
+                settings: this.wm.settings,
+                activeLayout
+            });
         });
     }
 
     UpdateSetting(prop, valueJson) {
-        if (!this.wm || typeof prop !== 'string') return false;
-        try {
+        return this._safeCall('UpdateSetting', false, () => {
             let value = JSON.parse(valueJson);
+            if (!this._isValidSettingValue(prop, value)) {
+                return false;
+            }
             this.wm.updateSettingValue(prop, value);
             return true;
-        } catch (e) {
-            return false;
-        }
+        });
     }
 
     ActivateLayout(layoutId) {
-        if (!this.wm || typeof layoutId !== 'string') return false;
-        this.wm.setLayoutById(layoutId);
-        return true;
+        if (typeof layoutId !== 'string' || !layoutId.trim()) return false;
+        return this._safeCall('ActivateLayout', false, () => {
+            this.wm.setLayoutById(layoutId);
+            return true;
+        });
     }
 
     ResetRatios() {
-        if (!this.wm) return false;
-        this.wm.resetCurrentLayoutRatios();
-        return true;
+        return this._safeCall('ResetRatios', false, () => {
+            this.wm.resetCurrentLayoutRatios();
+            return true;
+        });
     }
 
     ImportSettings(payloadJson) {
-        if (!this.wm || typeof this.wm.importSettingsSnapshot !== 'function') return false;
-        try {
+        if (typeof payloadJson !== 'string') return false;
+        return this._safeCall('ImportSettings', false, () => {
+            if (typeof this.wm.importSettingsSnapshot !== 'function') return false;
             let parsed = JSON.parse(payloadJson);
             return Boolean(this.wm.importSettingsSnapshot(parsed));
-        } catch (e) {
-            return false;
-        }
+        });
     }
 
     _normalizeDirection(direction) {
@@ -156,68 +188,101 @@ class CinnaWMIpcService {
     }
 
     CycleLayout(direction) {
-        if (!this.wm || typeof this.wm.cycleLayout !== 'function') return false;
-        let step = Number(direction) < 0 ? -1 : 1;
-        this.wm.cycleLayout(step);
-        return true;
+        return this._safeCall('CycleLayout', false, () => {
+            if (typeof this.wm.cycleLayout !== 'function') return false;
+            let step = Number(direction) < 0 ? -1 : 1;
+            this.wm.cycleLayout(step);
+            return true;
+        });
     }
 
     FocusDirection(direction) {
         let dir = this._normalizeDirection(direction);
-        if (!this.wm || !dir || typeof this.wm.focusDirectional !== 'function') return false;
-        this.wm.focusDirectional(dir);
-        return true;
+        if (!dir) return false;
+        return this._safeCall('FocusDirection', false, () => {
+            if (typeof this.wm.focusDirectional !== 'function') return false;
+            this.wm.focusDirectional(dir);
+            return true;
+        });
     }
 
     SwapDirection(direction) {
         let dir = this._normalizeDirection(direction);
-        if (!this.wm || !dir || typeof this.wm.swapDirectional !== 'function') return false;
-        this.wm.swapDirectional(dir);
-        return true;
+        if (!dir) return false;
+        return this._safeCall('SwapDirection', false, () => {
+            if (typeof this.wm.swapDirectional !== 'function') return false;
+            this.wm.swapDirectional(dir);
+            return true;
+        });
     }
 
     ToggleFloating() {
-        if (!this.wm || typeof this.wm.toggleFocusedFloating !== 'function') return false;
-        this.wm.toggleFocusedFloating();
-        return true;
+        return this._safeCall('ToggleFloating', false, () => {
+            if (typeof this.wm.toggleFocusedFloating !== 'function') return false;
+            this.wm.toggleFocusedFloating();
+            return true;
+        });
     }
 
     ToggleTiling() {
-        if (!this.wm || typeof this.wm.toggleWorkspaceTiling !== 'function') return false;
-        this.wm.toggleWorkspaceTiling();
-        return true;
+        return this._safeCall('ToggleTiling', false, () => {
+            if (typeof this.wm.toggleWorkspaceTiling !== 'function') return false;
+            this.wm.toggleWorkspaceTiling();
+            return true;
+        });
     }
 
     ToggleScratchpad() {
-        if (!this.wm || typeof this.wm.handleScratchpadToggle !== 'function') return false;
-        this.wm.handleScratchpadToggle();
-        return true;
+        return this._safeCall('ToggleScratchpad', false, () => {
+            if (typeof this.wm.handleScratchpadToggle !== 'function') return false;
+            this.wm.handleScratchpadToggle();
+            return true;
+        });
     }
 
     MoveToWorkspace(delta) {
-        if (!this.wm || typeof this.wm.moveFocusedToWorkspace !== 'function') return false;
         let d = Math.trunc(Number(delta) || 0);
         if (d === 0) return false;
-        return Boolean(this.wm.moveFocusedToWorkspace(d));
+        return this._safeCall('MoveToWorkspace', false, () => {
+            if (typeof this.wm.moveFocusedToWorkspace !== 'function') return false;
+            return Boolean(this.wm.moveFocusedToWorkspace(d));
+        });
     }
 
     MoveToNextMonitor() {
-        if (!this.wm || typeof this.wm.moveFocusedToAdjacentMonitor !== 'function') return false;
-        return Boolean(this.wm.moveFocusedToAdjacentMonitor(1));
+        return this._safeCall('MoveToNextMonitor', false, () => {
+            if (typeof this.wm.moveFocusedToAdjacentMonitor !== 'function') return false;
+            return Boolean(this.wm.moveFocusedToAdjacentMonitor(1));
+        });
     }
 
     FocusNextMonitor() {
-        if (!this.wm || typeof this.wm.focusMonitorStep !== 'function') return false;
-        return Boolean(this.wm.focusMonitorStep(1));
+        return this._safeCall('FocusNextMonitor', false, () => {
+            if (typeof this.wm.focusMonitorStep !== 'function') return false;
+            return Boolean(this.wm.focusMonitorStep(1));
+        });
+    }
+
+    TogglePip() {
+        return this._safeCall('TogglePip', false, () => {
+            if (typeof this.wm.toggleFocusedPip !== 'function') return false;
+            return Boolean(this.wm.toggleFocusedPip());
+        });
+    }
+
+    OpenWindowSwitcher() {
+        return this._safeCall('OpenWindowSwitcher', false, () => {
+            if (typeof this.wm.openWindowSwitcher !== 'function') return false;
+            this.wm.openWindowSwitcher();
+            return true;
+        });
     }
 
     GetOpenWindows() {
-        if (!this.wm || typeof this.wm.getOpenWindowsInfo !== 'function') return '[]';
-        try {
+        return this._safeCall('GetOpenWindows', '[]', () => {
+            if (typeof this.wm.getOpenWindowsInfo !== 'function') return '[]';
             return JSON.stringify(this.wm.getOpenWindowsInfo() || []);
-        } catch (e) {
-            return '[]';
-        }
+        });
     }
 
     emitStateChanged(reason = 'updated') {

@@ -23,7 +23,7 @@ const {
     formatPrimaryShortcut
 } = require('./modal-utils');
 const { ActiveBorderOverlay } = require('./active-border');
-const { QuickGridOverlay, ResizeModeController } = require('./interactive-overlays');
+const { QuickGridOverlay, ResizeModeController, WindowSwitcherOverlay } = require('./interactive-overlays');
 
 /**
  * Drop Preview Overlay (shown during Mouse Drag-to-Swap / Snap)
@@ -471,6 +471,7 @@ class LayoutSelectorPopup {
     constructor(wm) {
         this.wm = wm;
         this.isOpen = false;
+        this._openSettingsIdleId = 0;
 
         this.backdrop = new St.Widget({
             style_class: 'cinnawm-selector-backdrop',
@@ -696,8 +697,18 @@ class LayoutSelectorPopup {
 
         settingsBtn.connect('clicked', () => {
             this.close();
-            GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
-                this.wm.openSettingsDialog(activeLayoutId);
+            if (this._openSettingsIdleId) {
+                GLib.source_remove(this._openSettingsIdleId);
+            }
+            this._openSettingsIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                this._openSettingsIdleId = 0;
+                if (this.wm && this.wm._enabled && typeof this.wm.openSettingsDialog === 'function') {
+                    try {
+                        this.wm.openSettingsDialog(activeLayoutId);
+                    } catch (e) {
+                        global.logError(`[${this.wm.uuid || 'cinnawm'}] Failed to open settings dialog: ${e}`);
+                    }
+                }
                 return GLib.SOURCE_REMOVE;
             });
         });
@@ -766,6 +777,10 @@ class LayoutSelectorPopup {
     }
 
     destroy() {
+        if (this._openSettingsIdleId) {
+            GLib.source_remove(this._openSettingsIdleId);
+            this._openSettingsIdleId = 0;
+        }
         this.close();
         if (this.backdrop) {
             this.backdrop.destroy();
@@ -787,5 +802,6 @@ module.exports = {
     HudOsd,
     LayoutSelectorPopup,
     QuickGridOverlay,
-    ResizeModeController
+    ResizeModeController,
+    WindowSwitcherOverlay
 };

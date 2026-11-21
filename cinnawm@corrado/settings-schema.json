@@ -36,7 +36,7 @@
         "section-general": {
             "type": "section",
             "title": "Tiling Engine",
-            "keys": ["default-layout", "auto-tiling-enabled", "overflow-min-width-px", "overflow-min-height-px"]
+            "keys": ["default-layout", "workspace-default-layouts", "auto-tiling-enabled", "overflow-min-width-px", "overflow-min-height-px"]
         },
         "section-dwindle": {
             "type": "section",
@@ -56,6 +56,7 @@
                 "master-ratio-pct",
                 "master-count",
                 "master-orientation",
+                "master-auto-orientation",
                 "master-new-window-placement",
                 "master-single-window-width-pct"
             ]
@@ -128,12 +129,15 @@
             "title": "Active Window Border",
             "keys": [
                 "active-border-enabled",
+                "smart-no-border",
                 "active-border-color",
                 "active-border-state-colors",
                 "active-border-floating-color",
                 "active-border-stacked-color",
                 "active-border-width",
-                "active-border-radius"
+                "active-border-radius",
+                "inactive-dimming-enabled",
+                "inactive-window-opacity-pct"
             ]
         },
         "section-osd-grid": {
@@ -149,7 +153,7 @@
         "section-scratchpad": {
             "type": "section",
             "title": "Drop-Down Scratchpad (i3 / Sway style)",
-            "keys": ["scratchpad-width-pct", "scratchpad-height-pct"]
+            "keys": ["scratchpad-width-pct", "scratchpad-height-pct", "pip-corner", "pip-width-pct", "pip-height-pct"]
         },
         "section-kb-nav": {
             "type": "section",
@@ -179,7 +183,8 @@
             "title": "Scratchpad, Quick Grid &amp; Modal Resize",
             "keys": [
                 "kb-scratchpad-toggle", "kb-scratchpad-assign",
-                "kb-quick-grid", "kb-resize-mode", "kb-center-window"
+                "kb-quick-grid", "kb-resize-mode", "kb-center-window",
+                "kb-toggle-pip", "kb-window-switcher"
             ]
         }
     },
@@ -197,6 +202,11 @@
             "[#] Balanced Grid (Automatic Grid)": "grid",
             "[~] Floating (Classic)": "floating"
         }
+    },
+    "workspace-default-layouts": {
+        "type": "entry",
+        "default": "",
+        "description": "Per-workspace default layouts (e.g. 1=dwindle, 2=scrolling, 3=master-stack)"
     },
     "auto-tiling-enabled": {
         "type": "switch",
@@ -293,6 +303,11 @@
             "Master on Top": "top",
             "Master on Bottom": "bottom"
         }
+    },
+    "master-auto-orientation": {
+        "type": "switch",
+        "default": true,
+        "description": "Automatically switch Left/Right Master orientation to Top/Bottom on vertical (portrait) monitors"
     },
     "master-new-window-placement": {
         "type": "combobox",
@@ -571,6 +586,27 @@
         "description": "Active window border corner radius",
         "dependency": "active-border-enabled"
     },
+    "smart-no-border": {
+        "type": "switch",
+        "default": false,
+        "description": "Hide active window border when only 1 tiled window is visible on the monitor",
+        "dependency": "active-border-enabled"
+    },
+    "inactive-dimming-enabled": {
+        "type": "switch",
+        "default": false,
+        "description": "Dim unfocused windows to highlight keyboard/mouse focus"
+    },
+    "inactive-window-opacity-pct": {
+        "type": "spinbutton",
+        "default": 88,
+        "min": 40,
+        "max": 100,
+        "step": 2,
+        "units": "%",
+        "description": "Opacity percentage for unfocused windows",
+        "dependency": "inactive-dimming-enabled"
+    },
     "show-panel-indicator": {
         "type": "switch",
         "default": true,
@@ -627,6 +663,35 @@
         "step": 5,
         "units": "%",
         "description": "Scratchpad window height relative to monitor"
+    },
+    "pip-corner": {
+        "type": "combobox",
+        "default": "bottom-right",
+        "description": "Corner used for Picture-in-Picture / Sticky windows",
+        "options": {
+            "Bottom Right": "bottom-right",
+            "Bottom Left": "bottom-left",
+            "Top Right": "top-right",
+            "Top Left": "top-left"
+        }
+    },
+    "pip-width-pct": {
+        "type": "spinbutton",
+        "default": 28,
+        "min": 15,
+        "max": 50,
+        "step": 1,
+        "units": "%",
+        "description": "Picture-in-Picture window width relative to monitor"
+    },
+    "pip-height-pct": {
+        "type": "spinbutton",
+        "default": 28,
+        "min": 15,
+        "max": 50,
+        "step": 1,
+        "units": "%",
+        "description": "Picture-in-Picture window height relative to monitor"
     },
 
     "kb-focus-left": {
@@ -773,5 +838,15 @@
         "type": "keybinding",
         "default": "<Super><Alt>o",
         "description": "Focus next monitor"
+    },
+    "kb-toggle-pip": {
+        "type": "keybinding",
+        "default": "<Super>y",
+        "description": "Toggle Picture-in-Picture / Sticky mode for active window"
+    },
+    "kb-window-switcher": {
+        "type": "keybinding",
+        "default": "<Super>Tab",
+        "description": "Open Quick Window & Tab Switcher"
     }
 }

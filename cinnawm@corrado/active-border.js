@@ -10,6 +10,7 @@ const St = imports.gi.St;
 const Main = imports.ui.main;
 
 const Layouts = require('./layouts');
+const { safeRaiseWindow, safeActivateWindow } = require('./window-rules');
 const {
     _,
     safePushModal,
@@ -43,6 +44,7 @@ class ActiveBorderOverlay {
         this.isStackPopupOpen = false;
         this._lastBorderStyle = null;
         this._badgeSyncIdleId = 0;
+        this._dimmedActors = new Map();
     }
 
     attachToWindow(metaWindow) {
@@ -103,7 +105,13 @@ class ActiveBorderOverlay {
         this._badgeSyncIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
             this._badgeSyncIdleId = 0;
             if (this.actor) {
-                this._syncStackedBadges();
+                try {
+                    this._syncStackedBadges();
+                } catch (e) {
+                    if (typeof global !== 'undefined' && global.logError) {
+                        global.logError(`[${this.wm ? this.wm.uuid : 'cinnawm'}] Failed to sync stacked badges: ${e}`);
+                    }
+                }
             }
             return GLib.SOURCE_REMOVE;
         });
@@ -229,8 +237,8 @@ class ActiveBorderOverlay {
             if (state.activeTabMap && ctx.groupIds.length > 0) {
                 state.activeTabMap.set(ctx.groupIds[0], targetId);
             }
-            targetWin.raise();
-            targetWin.activate(global.get_current_time());
+            safeRaiseWindow(targetWin);
+            safeActivateWindow(targetWin, global.get_current_time());
             this.wm.queueRetile(true);
             if (typeof this.wm._showStackPositionOsd === 'function') {
                 this.wm._showStackPositionOsd(state, targetWin, ctx.wsIdx, ctx.monIdx);
@@ -649,6 +657,7 @@ class ActiveBorderOverlay {
         let winId = win.get_stable_sequence();
 
         if ((this.wm.scratchpad && this.wm.scratchpad.has(winId)) ||
+            (this.wm.pipWindows && this.wm.pipWindows.has(winId)) ||
             (this.wm.manualFloating && this.wm.manualFloating.has(winId))) {
             return floatingColor;
         }
@@ -675,6 +684,77 @@ class ActiveBorderOverlay {
         return tiledColor;
     }
 
+    _restoreDimmedActors() {
+        if (!this._dimmedActors || this._dimmedActors.size === 0) return;
+        for (let actor of this._dimmedActors.keys()) {
+            try {
+                if (actor && typeof actor.set_opacity === 'function') {
+                    actor.set_opacity(255);
+                }
+            } catch (e) {
+                // Actor already destroyed
+            }
+        }
+        this._dimmedActors.clear();
+    }
+
+    _syncWindowDimming(focusedWin, settings) {
+        if (!settings || !settings.inactiveDimmingEnabled || !this.wm || !this.wm._enabled) {
+            this._restoreDimmedActors();
+            return;
+        }
+        if ((Main.overview && Main.overview.visible) || (Main.expo && Main.expo.visible)) {
+            this._restoreDimmedActors();
+            return;
+        }
+        if (!focusedWin || focusedWin.is_fullscreen()) {
+            this._restoreDimmedActors();
+            return;
+        }
+
+        let pct = Layouts.clamp(Number(settings.inactiveWindowOpacityPct) || 88, 40, 100);
+        if (pct >= 100) {
+            this._restoreDimmedActors();
+            return;
+        }
+        let targetOpacity = Math.max(80, Math.min(255, Math.round((pct / 100.0) * 255)));
+        let nextDimmed = new Map();
+        let actors = Meta.get_window_actors(global.display);
+
+        for (let actor of actors) {
+            let mw = actor && typeof actor.get_meta_window === 'function' ? actor.get_meta_window() : null;
+            if (!mw) continue;
+            if (mw === focusedWin || mw.minimized || mw.is_fullscreen()) continue;
+            if (mw.get_window_type() !== Meta.WindowType.NORMAL) continue;
+            if (mw.is_on_all_workspaces() && mw.is_above()) continue; // Keep PiP / sticky videos bright
+            let wid = mw.get_stable_sequence();
+            if (this.wm.pipWindows && this.wm.pipWindows.has(wid)) continue;
+            if (mw.get_transient_for() === focusedWin || focusedWin.get_transient_for() === mw) continue;
+
+            try {
+                if (actor.opacity !== targetOpacity) {
+                    actor.set_opacity(targetOpacity);
+                }
+                nextDimmed.set(actor, targetOpacity);
+            } catch (e) {
+                // Ignore transient actor disposal
+            }
+        }
+
+        for (let oldActor of this._dimmedActors.keys()) {
+            if (!nextDimmed.has(oldActor)) {
+                try {
+                    if (oldActor && typeof oldActor.set_opacity === 'function') {
+                        oldActor.set_opacity(255);
+                    }
+                } catch (e) {
+                    // Ignore disposed actor
+                }
+            }
+        }
+        this._dimmedActors = nextDimmed;
+    }
+
     sync(deferBadges = false) {
         const updateBadges = () => {
             if (deferBadges) {
@@ -685,6 +765,8 @@ class ActiveBorderOverlay {
         };
 
         let s = this.wm.settings;
+        this._syncWindowDimming(this._trackedWindow, s);
+
         if (!s.activeBorderEnabled || !this._trackedWindow) {
             this.actor.hide();
             updateBadges();
@@ -701,7 +783,7 @@ class ActiveBorderOverlay {
             return;
         }
 
-        if (s.smartGaps && this.wm.isSingleTiledWindowOnMonitor(win)) {
+        if ((s.smartGaps || s.smartNoBorder) && this.wm.isSingleTiledWindowOnMonitor(win)) {
             this.actor.hide();
             updateBadges();
             return;
@@ -731,6 +813,7 @@ class ActiveBorderOverlay {
     }
 
     hide() {
+        this._restoreDimmedActors();
         this._cancelPendingBadgeSync();
         this._closeStackPopup();
         if (this.actor) this.actor.hide();
@@ -742,6 +825,7 @@ class ActiveBorderOverlay {
     }
 
     destroy() {
+        this._restoreDimmedActors();
         this._cancelPendingBadgeSync();
         this._closeStackPopup();
         if (this._stackPopupBackdrop) {

@@ -33,8 +33,8 @@ function buildWindowPersistenceKeys(windowEntries) {
  * Holds independent layout state for a single (workspaceIndex, monitorIndex) pair.
  */
 class WorkspaceMonitorState {
-    constructor(defaultSettings = {}) {
-        this.layoutId = defaultSettings.defaultLayout || 'dwindle';
+    constructor(defaultSettings = {}, wsIndex = null) {
+        this.layoutId = Layouts.resolveDefaultLayoutForWorkspace(wsIndex, defaultSettings);
         this.previousLayoutId = null;
         this.autoTile = (defaultSettings.autoTilingEnabled !== false) && (this.layoutId !== 'floating');
         this.masterRatio = (defaultSettings.masterRatioPct || 55) / 100.0;
@@ -98,7 +98,8 @@ function loadPersistedStates(wm) {
 
         for (let [key, saved] of Object.entries(data.states)) {
             if (!saved || typeof saved !== 'object') continue;
-            let st = new WorkspaceMonitorState(wm.settings);
+            let wsNum = Number(String(key).split(':')[0]);
+            let st = new WorkspaceMonitorState(wm.settings, Number.isFinite(wsNum) ? wsNum : null);
             if (typeof saved.layoutId === 'string' && Layouts.LAYOUTS.some(l => l.id === saved.layoutId)) {
                 st.layoutId = saved.layoutId;
             }

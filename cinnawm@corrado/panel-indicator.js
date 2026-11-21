@@ -370,7 +370,9 @@ class PanelIndicatorController {
                 ];
                 this._tooltip.set_markup(lines.join('\n'));
             } catch (e) {
-                // ignore tooltip markup errors
+                if (typeof global !== 'undefined' && global.logError) {
+                    global.logError(`[${UUID}] Failed to update panel tooltip: ${e}`);
+                }
             }
         }
     }

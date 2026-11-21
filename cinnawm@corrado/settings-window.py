@@ -30,6 +30,8 @@ from settings_data import (
     _,
     DEFAULT_SETTINGS,
     format_keybinding_list,
+    parse_workspace_default_layouts,
+    format_workspace_default_layouts,
     get_sections_meta,
     get_layouts_guide_list,
     get_shortcut_groups,
@@ -38,6 +40,10 @@ from settings_data import (
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ICONS_DIR = os.path.join(SCRIPT_DIR, 'icons')
+
+
+def _log_warn(context, exc):
+    print(f"[{UUID}] {context}: {exc}", file=sys.stderr)
 
 
 class CinnaWMBridge:
@@ -55,7 +61,8 @@ class CinnaWMBridge:
         )
         try:
             self._bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
-        except Exception:
+        except Exception as e:
+            _log_warn('Session D-Bus unavailable', e)
             self._bus = None
 
     def _call_dbus(self, method_name, params_variant=None, reply_sig='(b)'):
@@ -75,7 +82,8 @@ class CinnaWMBridge:
             )
             unpacked = res.unpack()
             return True, (unpacked[0] if len(unpacked) == 1 else unpacked)
-        except Exception:
+        except Exception as e:
+            _log_warn(f'D-Bus call {method_name} failed', e)
             return False, None
 
     def fetch_snapshot(self):
@@ -91,8 +99,8 @@ class CinnaWMBridge:
                     merged.update(parsed.get('settings') or {})
                     active_layout = parsed.get('activeLayout') or merged.get('defaultLayout', 'dwindle')
                     return merged, active_layout
-            except Exception:
-                pass
+            except Exception as e:
+                _log_warn('Failed to parse GetSnapshot payload', e)
 
         # Fallback: read persisted workspace-layouts.json on disk
         merged = dict(DEFAULT_SETTINGS)
@@ -107,8 +115,8 @@ class CinnaWMBridge:
                     active_layout = merged.get('defaultLayout', 'dwindle')
                     if not merged.get('autoTilingEnabled', True):
                         active_layout = 'floating'
-            except Exception:
-                pass
+            except Exception as e:
+                _log_warn(f'Failed to read fallback state file {self.state_file}', e)
         return merged, active_layout
 
     def update_setting(self, prop, value):
@@ -121,14 +129,16 @@ class CinnaWMBridge:
             self._update_file_fallback(prop, value)
 
     def activate_layout(self, layout_id):
-        self._call_dbus(
+        ok, res = self._call_dbus(
             'ActivateLayout',
             GLib.Variant('(s)', (str(layout_id),)),
             '(b)',
         )
+        return bool(ok and res)
 
     def reset_ratios(self):
-        self._call_dbus('ResetRatios', None, '(b)')
+        ok, res = self._call_dbus('ResetRatios', None, '(b)')
+        return bool(ok and res)
 
     def subscribe_state_changed(self, callback):
         if not self._bus or not callable(callback):
@@ -145,15 +155,16 @@ class CinnaWMBridge:
                     params.unpack()[0] if params else 'updated'
                 ),
             )
-        except Exception:
+        except Exception as e:
+            _log_warn('Failed to subscribe to StateChanged D-Bus signal', e)
             return 0
 
     def unsubscribe_state_changed(self, sub_id):
         if self._bus and sub_id:
             try:
                 self._bus.signal_unsubscribe(sub_id)
-            except Exception:
-                pass
+            except Exception as e:
+                _log_warn('Failed to unsubscribe StateChanged D-Bus signal', e)
 
     def _update_file_fallback(self, prop, value):
         try:
@@ -166,8 +177,8 @@ class CinnaWMBridge:
             os.makedirs(os.path.dirname(self.state_file), exist_ok=True)
             with open(self.state_file, 'w', encoding='utf-8') as f:
                 json.dump(data, f, indent=2)
-        except Exception:
-            pass
+        except Exception as e:
+            _log_warn(f'Failed to write fallback setting {prop} to {self.state_file}', e)
 
     def import_settings(self, settings_dict):
         if not isinstance(settings_dict, dict):
@@ -183,7 +194,7 @@ class CinnaWMBridge:
                     try:
                         clean[k] = int(round(float(val)))
                     except Exception:
-                        pass
+                        _log_warn(f'Ignoring invalid integer setting {k}', val)
                 elif isinstance(default_val, str) and isinstance(val, str):
                     clean[k] = val
 
@@ -210,8 +221,8 @@ class CinnaWMBridge:
             os.makedirs(os.path.dirname(self.state_file), exist_ok=True)
             with open(self.state_file, 'w', encoding='utf-8') as f:
                 json.dump(data, f, indent=2)
-        except Exception:
-            pass
+        except Exception as e:
+            _log_warn(f'Failed to persist imported settings to {self.state_file}', e)
 
         # Also sync into Cinnamon's spice config JSON files if they exist on disk
         config_root = os.environ.get('CINNAWM_CONFIG_DIR') or GLib.get_user_config_dir()
@@ -235,8 +246,8 @@ class CinnaWMBridge:
                         if changed:
                             with open(sp, 'w', encoding='utf-8') as f:
                                 json.dump(sp_data, f, indent=4)
-                except Exception:
-                    pass
+                except Exception as e:
+                    _log_warn(f'Failed to sync spice config {sp}', e)
 
         return True
 
@@ -281,8 +292,8 @@ class CinnaWMSettingsWindow(Gtk.ApplicationWindow):
                     self.set_icon_list(pixbufs)
                 else:
                     self.set_icon_from_file(icon_path)
-            except Exception:
-                pass
+            except Exception as e:
+                _log_warn(f'Failed to load window icon {icon_path}', e)
 
         self._apply_custom_css()
         self._build_ui()
@@ -831,6 +842,89 @@ class CinnaWMSettingsWindow(Gtk.ApplicationWindow):
                     {'label': _('Floating & Tools'), 'value': 'floating'},
                 ],
             )
+            ws_vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+            ws_vbox.set_margin_start(18)
+            ws_vbox.set_margin_end(18)
+            ws_vbox.set_margin_top(11)
+            ws_vbox.set_margin_bottom(12)
+            ws_title = Gtk.Label(label=_('Per-Workspace Default Layouts'), xalign=0.0)
+            ws_title.get_style_context().add_class('cinnawm-row-title')
+            ws_title.set_halign(Gtk.Align.START)
+            ws_desc = Gtk.Label(
+                label=_('Optional initial layout overrides for Workspaces 1–6 (others inherit Global Default Layout).'),
+                xalign=0.0,
+            )
+            ws_desc.get_style_context().add_class('dim-label')
+            ws_desc.get_style_context().add_class('cinnawm-row-desc')
+            ws_desc.set_halign(Gtk.Align.START)
+            ws_desc.set_line_wrap(True)
+            ws_desc.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+            ws_vbox.pack_start(ws_title, False, False, 0)
+            ws_vbox.pack_start(ws_desc, False, False, 0)
+
+            ws_grid = Gtk.Grid()
+            ws_grid.set_row_spacing(6)
+            ws_grid.set_column_spacing(14)
+            ws_choices = [
+                ('', _('Inherit Global')),
+                ('dwindle', _('Dwindle / BSP')),
+                ('master-stack', _('Master & Stack')),
+                ('centered-master', _('Centered Master')),
+                ('scrolling', _('Scrolling Columns')),
+                ('monocle', _('Monocle / Zen')),
+                ('grid', _('Balanced Grid')),
+                ('floating', _('Floating')),
+            ]
+            ws_combos = {}
+            cur_ws_map = parse_workspace_default_layouts(
+                str(self.settings.get('workspaceDefaultLayouts', DEFAULT_SETTINGS.get('workspaceDefaultLayouts', '')))
+            )
+
+            for idx_ws in range(6):
+                ws_num = idx_ws + 1
+                cell = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+                lbl = Gtk.Label(label=f'WS {ws_num}:')
+                lbl.get_style_context().add_class('dim-label')
+                lbl.set_valign(Gtk.Align.CENTER)
+                combo = Gtk.ComboBoxText()
+                combo.set_valign(Gtk.Align.CENTER)
+                for cid, clabel in ws_choices:
+                    combo.append(cid, clabel)
+                if not combo.set_active_id(cur_ws_map.get(ws_num, '')):
+                    combo.set_active(0)
+
+                def on_ws_combo_changed(widget, num=ws_num):
+                    if self._updating_widgets:
+                        return
+                    merged = parse_workspace_default_layouts(
+                        str(self.settings.get('workspaceDefaultLayouts', ''))
+                    )
+                    sel = widget.get_active_id() or ''
+                    if sel:
+                        merged[num] = sel
+                    else:
+                        merged.pop(num, None)
+                    formatted = format_workspace_default_layouts(merged)
+                    self.settings['workspaceDefaultLayouts'] = formatted
+                    self.bridge.update_setting('workspaceDefaultLayouts', formatted)
+
+                combo.connect('changed', on_ws_combo_changed)
+                ws_combos[ws_num] = combo
+                cell.pack_start(lbl, False, False, 0)
+                cell.pack_start(combo, True, True, 0)
+                ws_grid.attach(cell, idx_ws % 3, idx_ws // 3, 1, 1)
+
+            def sync_ws_combos():
+                m = parse_workspace_default_layouts(
+                    str(self.settings.get('workspaceDefaultLayouts', ''))
+                )
+                for num, cb in ws_combos.items():
+                    if not cb.set_active_id(m.get(num, '')):
+                        cb.set_active(0)
+
+            self._widget_updaters.append(sync_ws_combos)
+            ws_vbox.pack_start(ws_grid, False, False, 2)
+            add_row_widget(ws_vbox)
             add_switch(
                 _('Enable Auto-Tiling'),
                 _('Automatically tile normal windows opened on the active workspace.'),
@@ -912,6 +1006,21 @@ class CinnaWMSettingsWindow(Gtk.ApplicationWindow):
                 'activeBorderRadius', 0, 24, 1, 'px',
             )
             add_switch(
+                _('Smart No-Border (Single Window)'),
+                _('Hide the active border frame automatically when only a single tiled window is visible on the monitor.'),
+                'smartNoBorder',
+            )
+            add_switch(
+                _('Dim Unfocused Windows'),
+                _('Slightly reduce opacity of unfocused windows to highlight the currently focused window.'),
+                'inactiveDimmingEnabled',
+            )
+            add_spin(
+                _('Unfocused Window Opacity'),
+                _('Opacity percentage applied to inactive windows when window dimming is enabled.'),
+                'inactiveWindowOpacityPct', 40, 100, 2, '%',
+            )
+            add_switch(
                 _('On-Screen HUD / OSD Notifications'),
                 _('Show an on-screen badge when switching layouts, rotating splits, or toggling the Scratchpad.'),
                 'showOsd',
@@ -976,6 +1085,11 @@ class CinnaWMSettingsWindow(Gtk.ApplicationWindow):
                     {'label': _('Top'), 'value': 'top'},
                     {'label': _('Bottom'), 'value': 'bottom'},
                 ],
+            )
+            add_switch(
+                _('Auto Portrait Rotation'),
+                _('Automatically switch Left/Right Master splits to Top/Bottom on vertical (portrait) monitors.'),
+                'masterAutoOrientation',
             )
             add_choice(
                 _('New Window Placement'),
@@ -1125,6 +1239,27 @@ class CinnaWMSettingsWindow(Gtk.ApplicationWindow):
                 _('Scratchpad Window Height (Super+S)'),
                 _('Height as a percentage of the screen for the drop-down Scratchpad window.'),
                 'scratchpadHeightPct', 30, 95, 5, '%',
+            )
+            add_choice(
+                _('Picture-in-Picture Corner (Super+Y)'),
+                _('Screen corner where sticky Picture-in-Picture windows are placed.'),
+                'pipCorner',
+                [
+                    {'label': _('Bottom Right'), 'value': 'bottom-right'},
+                    {'label': _('Bottom Left'), 'value': 'bottom-left'},
+                    {'label': _('Top Right'), 'value': 'top-right'},
+                    {'label': _('Top Left'), 'value': 'top-left'},
+                ],
+            )
+            add_spin(
+                _('Picture-in-Picture Width (Super+Y)'),
+                _('Width as a percentage of the monitor work area for PiP windows.'),
+                'pipWidthPct', 15, 50, 1, '%',
+            )
+            add_spin(
+                _('Picture-in-Picture Height (Super+Y)'),
+                _('Height as a percentage of the monitor work area for PiP windows.'),
+                'pipHeightPct', 15, 50, 1, '%',
             )
 
         page.pack_start(card_frame, False, False, 0)
@@ -1518,8 +1653,8 @@ class CinnaWMSettingsWindow(Gtk.ApplicationWindow):
             for updater in self._widget_updaters:
                 try:
                     updater()
-                except Exception:
-                    pass
+                except Exception as e:
+                    _log_warn('Widget refresh callback failed', e)
         finally:
             self._updating_widgets = False
         self._sync_active_layout_indicators()
@@ -1541,11 +1676,13 @@ class CinnaWMSettingsWindow(Gtk.ApplicationWindow):
             buttons=Gtk.ButtonsType.OK,
             text=primary_text,
         )
-        if secondary_text:
-            dlg.format_secondary_text(secondary_text)
-        dlg.set_keep_above(True)
-        dlg.run()
-        dlg.destroy()
+        try:
+            if secondary_text:
+                dlg.format_secondary_text(secondary_text)
+            dlg.set_keep_above(True)
+            dlg.run()
+        finally:
+            dlg.destroy()
 
     def _on_export_config_clicked(self, _btn):
         self._refresh_from_wm()
@@ -1568,9 +1705,11 @@ class CinnaWMSettingsWindow(Gtk.ApplicationWindow):
         json_filter.add_pattern("*.json")
         dlg.add_filter(json_filter)
 
-        resp = dlg.run()
-        filepath = dlg.get_filename()
-        dlg.destroy()
+        try:
+            resp = dlg.run()
+            filepath = dlg.get_filename()
+        finally:
+            dlg.destroy()
 
         if resp != Gtk.ResponseType.ACCEPT or not filepath:
             return
@@ -1592,6 +1731,7 @@ class CinnaWMSettingsWindow(Gtk.ApplicationWindow):
                 _("Profile saved to:\n") + filepath,
             )
         except Exception as e:
+            _log_warn('Configuration export failed', e)
             self._show_message_dialog(
                 Gtk.MessageType.ERROR,
                 _("Export Failed"),
@@ -1616,9 +1756,11 @@ class CinnaWMSettingsWindow(Gtk.ApplicationWindow):
         json_filter.add_pattern("*.json")
         dlg.add_filter(json_filter)
 
-        resp = dlg.run()
-        filepath = dlg.get_filename()
-        dlg.destroy()
+        try:
+            resp = dlg.run()
+            filepath = dlg.get_filename()
+        finally:
+            dlg.destroy()
 
         if resp != Gtk.ResponseType.ACCEPT or not filepath:
             return
@@ -1638,6 +1780,7 @@ class CinnaWMSettingsWindow(Gtk.ApplicationWindow):
                 _("All preferences, layouts, and shortcuts have been restored."),
             )
         except Exception as e:
+            _log_warn('Configuration import failed', e)
             self._show_message_dialog(
                 Gtk.MessageType.ERROR,
                 _("Import Failed"),
@@ -1647,8 +1790,13 @@ class CinnaWMSettingsWindow(Gtk.ApplicationWindow):
     def _on_sys_settings_clicked(self, _btn):
         try:
             GLib.spawn_command_line_async(f"{XLET_SETTINGS_CMD} extension {UUID}")
-        except Exception:
-            pass
+        except Exception as e:
+            _log_warn(f'Failed to launch {XLET_SETTINGS_CMD}', e)
+            self._show_message_dialog(
+                Gtk.MessageType.ERROR,
+                _("Failed to open System Settings"),
+                str(e),
+            )
 
     def _on_wm_state_changed(self, _reason=None):
         if self._destroyed or self._ipc_refresh_idle_id:

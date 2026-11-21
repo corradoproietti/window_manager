@@ -36,6 +36,13 @@ if [ -z "${SRC_DIR}" ] || [ ! -f "${SRC_DIR}/metadata.json" ]; then
     exit 1
 fi
 
+for req_bin in zip sha256sum python3; do
+    if ! command -v "${req_bin}" >/dev/null 2>&1; then
+        echo "Error: required build dependency '${req_bin}' not found in PATH." >&2
+        exit 1
+    fi
+done
+
 META_FILE="${SRC_DIR}/metadata.json"
 read_meta() {
     python3 -c "import json,sys; v=json.load(open(sys.argv[1], encoding='utf-8')).get(sys.argv[2], ''); print(', '.join(v) if isinstance(v, list) else v)" "${META_FILE}" "$1"
@@ -105,12 +112,13 @@ ${EXT_DESC}
 
 ## Highlights in v${VERSION}
 
-- **Hybrid Tiling Engine**: Per-\`(workspace, monitor)\` layouts including **Dwindle / BSP**, **Master & Stack**, **Centered Master 3-Column**, **Scrolling Columns**, **Monocle / Zen**, **Balanced Grid**, and **Floating**.
+- **Hybrid Tiling Engine**: Per-\`(workspace, monitor)\` layouts including **Dwindle / BSP**, **Master & Stack**, **Centered Master 3-Column**, **Scrolling Columns**, **Monocle / Zen**, **Balanced Grid**, and **Floating**, with **Per-Workspace Default Layout** overrides and **Auto Portrait Rotation** on vertical monitors.
 - **Manual Tab Groups & Overflow Stacks**: \`Shift + Drag\` or \`Super + W\` / \`Super + Shift + T\` groups windows into tabbed cells with titlebar badges, scroll switching, and smooth directional keyboard exit (\`Super + H/J/K/L\` or Arrows).
+- **Quick Window & Tab Switcher (\`Super + Tab\`) & Picture-in-Picture (\`Super + Y\`)**: Modal fuzzy switcher across all workspaces, tabs, minimized windows, and scratchpad, plus sticky corner PiP mode with configurable size and screen corner.
 - **Direct Multi-Workspace & Multi-Monitor Actions**: Move windows across workspaces (\`Super + Shift + Page_Up/Page_Down\` or \`Super + Alt + Left/Right\`), throw/move across monitors (\`Super + Shift + O\`), and switch focus across monitors (\`Super + Alt + O\`).
-- **State-Aware Active Borders & Cursor Follows Focus**: Distinct configurable colors for Tiled, Floating/Scratchpad, and Stacked/Tabbed windows plus optional pointer warping on keyboard/monitor navigation.
+- **State-Aware Active Borders, Dimming & Cursor Follows Focus**: Distinct colors for Tiled, Floating/Scratchpad, and Stacked/Tabbed windows, **Smart No-Border** on single-window monitors, optional **Unfocused Window Dimming**, and pointer warping on keyboard/monitor navigation.
 - **Interactive Tools**: **Quick Snap Grid** (\`Super + G\`), **Modal Resize Mode** (\`Super + R\`), **Scratchpad** (\`Super + S\` / \`Super + \\\`\`), **Mouse Drag-to-Swap / Ctrl+Drag Edge Snap**, and live **Shared Edge Resize**.
-- **Native GTK3 Preferences & D-Bus IPC**: Live two-way sync via session D-Bus \`org.cinnawm.Service\` (\`StateChanged\` signal + full CLI control methods) and JSON profile Export / Import.
+- **Hardened D-Bus IPC & Lifecycle Resilience**: All 17 session D-Bus methods on \`org.cinnawm.Service\` (\`StateChanged\` signal + action methods) protected against transient window/JSON failures with safe fallback handling in \`settings-window.py\` and duplicate-free installs in \`install.sh\`.
 - **Full Gettext Localization**: English & Italian translations precompiled inside the extension archive.
 
 ## Installation from Release Archive

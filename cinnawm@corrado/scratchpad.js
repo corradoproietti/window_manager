@@ -6,7 +6,10 @@
 const {
     parseCustomRules,
     isPopupOrDialogWindow,
-    evaluateWindow
+    evaluateWindow,
+    safeRaiseWindow,
+    safeActivateWindow,
+    safeApplyWindowFrame
 } = require('./window-rules');
 
 class ScratchpadManager {
@@ -29,10 +32,14 @@ class ScratchpadManager {
         this.lastShownId = id;
 
         if (hideImmediately) {
-            if (metaWindow.is_above()) {
-                metaWindow.unmake_above();
+            try {
+                if (metaWindow.is_above()) {
+                    metaWindow.unmake_above();
+                }
+                metaWindow.minimize();
+            } catch (e) {
+                // Window might already be closing
             }
-            metaWindow.minimize();
         } else {
             this.centerScratchpadWindow(metaWindow);
         }
@@ -50,15 +57,15 @@ class ScratchpadManager {
             let remaining = Array.from(this.scratchpadIds);
             this.lastShownId = remaining.length > 0 ? remaining[remaining.length - 1] : null;
         }
-        if (metaWindow.is_above()) {
-            metaWindow.unmake_above();
-        }
-        if (metaWindow.minimized) {
-            try {
-                metaWindow.unminimize();
-            } catch (e) {
-                // ignore
+        try {
+            if (metaWindow.is_above()) {
+                metaWindow.unmake_above();
             }
+            if (metaWindow.minimized) {
+                metaWindow.unminimize();
+            }
+        } catch (e) {
+            // Window might already be unmanaging or disposed
         }
         return true;
     }
@@ -93,7 +100,15 @@ class ScratchpadManager {
     toggleShow() {
         // Prune dead windows
         for (let [id, win] of this.windowMap.entries()) {
-            if (!win) {
+            let alive = Boolean(win);
+            if (alive) {
+                try {
+                    win.get_stable_sequence();
+                } catch (e) {
+                    alive = false;
+                }
+            }
+            if (!alive) {
                 this.onWindowClosed(id);
             }
         }
@@ -106,10 +121,14 @@ class ScratchpadManager {
         if (focusWin) {
             let focusId = focusWin.get_stable_sequence();
             if (this.scratchpadIds.has(focusId) && !focusWin.minimized) {
-                if (focusWin.is_above()) {
-                    focusWin.unmake_above();
+                try {
+                    if (focusWin.is_above()) {
+                        focusWin.unmake_above();
+                    }
+                    focusWin.minimize();
+                } catch (e) {
+                    // ignore disposed focus window
                 }
-                focusWin.minimize();
                 return { status: 'hidden', window: focusWin };
             }
         }
@@ -131,47 +150,62 @@ class ScratchpadManager {
     }
 
     showScratchpadWindow(metaWindow) {
+        if (!metaWindow) return false;
         let activeWs = global.workspace_manager.get_active_workspace();
+        if (!activeWs) return false;
         let activeWsIndex = activeWs.index();
         let currentMonitor = global.display.get_current_monitor();
 
-        let winWs = metaWindow.get_workspace();
-        if (winWs && winWs.index() !== activeWsIndex) {
-            metaWindow.change_workspace_by_index(activeWsIndex, false);
-        }
-        if (metaWindow.get_monitor() !== currentMonitor) {
-            metaWindow.move_to_monitor(currentMonitor);
-        }
-
-        if (metaWindow.minimized) {
-            metaWindow.unminimize();
+        try {
+            let winWs = metaWindow.get_workspace();
+            if (winWs && winWs.index() !== activeWsIndex) {
+                metaWindow.change_workspace_by_index(activeWsIndex, false);
+            }
+            if (metaWindow.get_monitor() !== currentMonitor) {
+                metaWindow.move_to_monitor(currentMonitor);
+            }
+            if (metaWindow.minimized) {
+                metaWindow.unminimize();
+            }
+        } catch (e) {
+            if (typeof global !== 'undefined' && global.logError) {
+                global.logError(`[${this.wm ? this.wm.uuid : 'cinnawm'}] showScratchpadWindow error: ${e}`);
+            }
+            return false;
         }
 
         this.centerScratchpadWindow(metaWindow, currentMonitor, activeWs);
-        metaWindow.make_above();
-        metaWindow.raise();
-        metaWindow.activate(global.get_current_time());
+        try {
+            metaWindow.make_above();
+        } catch (e) {
+            // ignore if window no longer accepts above state
+        }
+        safeRaiseWindow(metaWindow);
+        safeActivateWindow(metaWindow, global.get_current_time());
+        return true;
     }
 
     centerScratchpadWindow(metaWindow, monitorIndex = null, workspace = null) {
-        const Meta = imports.gi.Meta;
-        let monIdx = (monitorIndex !== null) ? monitorIndex : metaWindow.get_monitor();
-        let ws = workspace || metaWindow.get_workspace();
-        let workarea = ws.get_work_area_for_monitor(monIdx);
+        if (!metaWindow) return false;
+        try {
+            let monIdx = (monitorIndex !== null) ? monitorIndex : metaWindow.get_monitor();
+            let ws = workspace || metaWindow.get_workspace();
+            if (!ws) return false;
+            let workarea = ws.get_work_area_for_monitor(monIdx);
+            if (!workarea || workarea.width <= 0 || workarea.height <= 0) return false;
 
-        let widthPct = (this.wm.settings.scratchpadWidthPct || 75) / 100.0;
-        let heightPct = (this.wm.settings.scratchpadHeightPct || 70) / 100.0;
+            let widthPct = (this.wm.settings.scratchpadWidthPct || 75) / 100.0;
+            let heightPct = (this.wm.settings.scratchpadHeightPct || 70) / 100.0;
 
-        let w = Math.round(workarea.width * widthPct);
-        let h = Math.round(workarea.height * heightPct);
-        let x = workarea.x + Math.round((workarea.width - w) / 2);
-        let y = workarea.y + Math.round((workarea.height - h) / 2);
+            let w = Math.round(workarea.width * widthPct);
+            let h = Math.round(workarea.height * heightPct);
+            let x = workarea.x + Math.round((workarea.width - w) / 2);
+            let y = workarea.y + Math.round((workarea.height - h) / 2);
 
-        if (metaWindow.get_maximized()) {
-            metaWindow.unmaximize(Meta.MaximizeFlags.BOTH);
+            return safeApplyWindowFrame(metaWindow, x, y, w, h, true);
+        } catch (e) {
+            return false;
         }
-        metaWindow.move_resize_frame(false, x, y, w, h);
-        metaWindow.move_frame(false, x, y);
     }
 
     destroy() {

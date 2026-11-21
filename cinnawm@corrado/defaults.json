@@ -1,5 +1,6 @@
 {
     "defaultLayout": "dwindle",
+    "workspaceDefaultLayouts": "",
     "autoTilingEnabled": true,
     "dwindleSplitDirection": "auto",
     "dwindleDefaultSplitRatioPct": 50,
@@ -9,6 +10,7 @@
     "masterRatioPct": 55,
     "masterCount": 1,
     "masterOrientation": "left",
+    "masterAutoOrientation": true,
     "masterNewWindowPlacement": "stack-end",
     "masterSingleWindowWidthPct": 100,
     "centeredMasterRatioPct": 50,
@@ -44,6 +46,9 @@
     "activeBorderStackedColor": "rgba(180, 142, 173, 0.95)",
     "activeBorderWidth": 3,
     "activeBorderRadius": 8,
+    "smartNoBorder": false,
+    "inactiveDimmingEnabled": false,
+    "inactiveWindowOpacityPct": 88,
     "showOsd": true,
     "showPanelIndicator": true,
     "gridCols": 4,
@@ -52,6 +57,9 @@
     "customWindowRules": "",
     "scratchpadWidthPct": 75,
     "scratchpadHeightPct": 70,
+    "pipCorner": "bottom-right",
+    "pipWidthPct": 28,
+    "pipHeightPct": 28,
     "kbFocusLeft": "<Super>h::<Super>Left",
     "kbFocusRight": "<Super>l::<Super>Right",
     "kbFocusUp": "<Super>k::<Super>Up",
@@ -80,5 +88,7 @@
     "kbMoveWorkspacePrev": "<Super><Shift>Page_Up::<Super><Alt>Left",
     "kbMoveWorkspaceNext": "<Super><Shift>Page_Down::<Super><Alt>Right",
     "kbMoveMonitorNext": "<Super><Shift>o",
-    "kbFocusMonitorNext": "<Super><Alt>o"
+    "kbFocusMonitorNext": "<Super><Alt>o",
+    "kbTogglePip": "<Super>y",
+    "kbWindowSwitcher": "<Super>Tab"
 }

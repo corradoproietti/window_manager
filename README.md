@@ -8,10 +8,10 @@ CinnaWM brings modern tiling workflows into Cinnamon without replacing Muffin, c
 
 ## Layouts
 
-Each `(workspace, monitor)` pair maintains its own layout and independent ratios/trees:
+Each `(workspace, monitor)` pair maintains its own layout (with optional per-workspace initial layout presets) and independent ratios/trees:
 
 - **`[@]` Dwindle / BSP** (Hyprland / bspwm style): binary space partitioning with aspect-ratio, spiral, vertical, or horizontal splits and Smart Gaps.
-- **`[]=` Master & Stack** (dwm / XMonad style): configurable master count/ratio and orientation (`left`, `right`, `top`, `bottom`).
+- **`[]=` Master & Stack** (dwm / XMonad style): configurable master count/ratio, orientation (`left`, `right`, `top`, `bottom`), and automatic Portrait rotation on vertical monitors.
 - **`[|M|]` Centered Master 3-Column**: central master pane flanked by dual side stacks (ideal for ultrawide displays).
 - **`[>>>]` Scrolling Columns** (Niri / PaperWM style): horizontally scrolling ribbon of adjustable columns.
 - **`[M]` Monocle / Zen**: maximized or centered distraction-free deck.
@@ -26,11 +26,11 @@ When an area becomes too tight (`overflowMinWidthPx` / `overflowMinHeightPx`), o
 
 ### From Release Archive
 
-Download the installable release archive (`cinnawm@corrado-v1.0.0.zip`) and extract it into your Cinnamon extensions directory:
+Download the installable release archive (`cinnawm@corrado-v1.0.1.zip`) and extract it into your Cinnamon extensions directory (or run `bash install.sh --zip=cinnawm@corrado-v1.0.1.zip`):
 
 ```bash
 mkdir -p "${XDG_DATA_HOME:-$HOME/.local/share}/cinnamon/extensions"
-unzip -o cinnawm@corrado-v1.0.0.zip -d "${XDG_DATA_HOME:-$HOME/.local/share}/cinnamon/extensions/"
+unzip -o cinnawm@corrado-v1.0.1.zip -d "${XDG_DATA_HOME:-$HOME/.local/share}/cinnamon/extensions/"
 ```
 
 Then enable **CinnaWM** in **System Settings → Extensions** (precompiled translations are bundled inside the archive).
@@ -68,7 +68,7 @@ Right on the Cinnamon panel badge:
 - **`Shift + Drag` onto Tile**: Merge windows into a **Manual Tab Group** (click the titlebar tab pills, scroll over the badge, or use keyboard navigation to switch tabs).
 - **`Ctrl + Drag` to Screen Edges/Corners**: Instant **Edge Snap** (halves, quarters, or top-edge maximize).
 - **Drag Shared Border**: Live adjacent tile resize (`mouseEdgeResize`).
-- **State-Aware Active Border**: Configurable outer highlight border with distinct colors for **Tiled**, **Floating / Scratchpad**, and **Stacked / Tabbed** windows.
+- **State-Aware Active Border & Dimming**: Configurable outer highlight border with distinct colors for **Tiled**, **Floating / Scratchpad**, and **Stacked / Tabbed** windows, **Smart No-Border** on single-window monitors, plus optional **Unfocused Window Dimming**.
 - **Cursor Follows Focus** *(optional)*: Enable in Preferences to center the pointer automatically when moving focus via keyboard or across monitors.
 - **Native GTK3 Preferences (`settings-window.py`)**: Two-way live sync via D-Bus (`StateChanged` signal), full shortcut viewer, window rules editor, and **Export / Import JSON profile** backup.
 
@@ -111,6 +111,8 @@ Right on the Cinnamon panel badge:
 | `Super + F` | Toggle Floating / Tiled state for focused window |
 | `Super + C` | Float and center focused window |
 | `Super + G` | Open interactive **Quick Snap Grid** (`gTile` style) |
+| `Super + Y` | Toggle **Picture-in-Picture / Sticky** corner window across workspaces |
+| `Super + Tab` | Open modal **Quick Window & Tab Switcher** with live search filter |
 | `Super + R` | Enter / exit **Modal Resize Mode** (`HJKL`/Arrows resize, `Shift` fine 2%, `0` reset ratios, `Esc`/`Enter` exit) |
 
 ---
@@ -133,6 +135,8 @@ CinnaWM exposes a typed session D-Bus service at bus name `org.cinnawm.Service`,
   - `ToggleFloating() -> (b ok)`
   - `ToggleTiling() -> (b ok)`
   - `ToggleScratchpad() -> (b ok)`
+  - `TogglePip() -> (b ok)`
+  - `OpenWindowSwitcher() -> (b ok)`
   - `MoveToWorkspace(i delta) -> (b ok)` (`-1` | `1`)
   - `MoveToNextMonitor() -> (b ok)`
   - `FocusNextMonitor() -> (b ok)`

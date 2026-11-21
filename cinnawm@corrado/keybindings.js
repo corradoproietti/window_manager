@@ -42,7 +42,9 @@ const KEYBINDING_SETTINGS_MAP = [
     ['kb-move-workspace-prev', 'kbMoveWorkspacePrev'],
     ['kb-move-workspace-next', 'kbMoveWorkspaceNext'],
     ['kb-move-monitor-next', 'kbMoveMonitorNext'],
-    ['kb-focus-monitor-next', 'kbFocusMonitorNext']
+    ['kb-focus-monitor-next', 'kbFocusMonitorNext'],
+    ['kb-toggle-pip', 'kbTogglePip'],
+    ['kb-window-switcher', 'kbWindowSwitcher']
 ];
 
 function normalizeAccelerator(accel) {
@@ -235,7 +237,9 @@ class KeybindingManager {
                     }
                     resolvedAny = true;
                 } catch (e) {
-                    // ignore
+                    if (typeof global !== 'undefined' && global.logError) {
+                        global.logError(`[${this.wm.uuid}] Failed to resolve custom keybinding '${entry.name}': ${e}`);
+                    }
                 }
             }
         }
@@ -249,7 +253,9 @@ class KeybindingManager {
                 Main.keybindingManager.removeHotKey(saved.name);
                 Main.keybindingManager.addHotKeyArray(saved.name, saved.bindings, saved.callback);
             } catch (e) {
-                // ignore
+                if (typeof global !== 'undefined' && global.logError) {
+                    global.logError(`[${this.wm.uuid}] Failed to restore custom keybinding '${saved.name}': ${e}`);
+                }
             }
         }
         this._overriddenCustomBindings.clear();
@@ -289,7 +295,9 @@ class KeybindingManager {
             ['cinnawm-move-ws-prev',        s.kbMoveWorkspacePrev,  () => this.wm.moveFocusedToWorkspace(-1)],
             ['cinnawm-move-ws-next',        s.kbMoveWorkspaceNext,  () => this.wm.moveFocusedToWorkspace(1)],
             ['cinnawm-move-monitor-next',   s.kbMoveMonitorNext,    () => this.wm.moveFocusedToAdjacentMonitor(1)],
-            ['cinnawm-focus-monitor-next',  s.kbFocusMonitorNext,   () => this.wm.focusMonitorStep(1)]
+            ['cinnawm-focus-monitor-next',  s.kbFocusMonitorNext,   () => this.wm.focusMonitorStep(1)],
+            ['cinnawm-toggle-pip',          s.kbTogglePip,          () => this.wm.toggleFocusedPip()],
+            ['cinnawm-window-switcher',     s.kbWindowSwitcher,     () => this.wm.openWindowSwitcher()]
         ];
 
         let activeAccels = new Set();
@@ -306,8 +314,14 @@ class KeybindingManager {
 
         for (let [name, combo, handler] of bindings) {
             if (combo && combo.trim()) {
-                Main.keybindingManager.addHotKey(name, combo, handler);
-                this._registeredHotkeys.push(name);
+                try {
+                    Main.keybindingManager.addHotKey(name, combo, handler);
+                    this._registeredHotkeys.push(name);
+                } catch (e) {
+                    if (typeof global !== 'undefined' && global.logError) {
+                        global.logError(`[${this.wm.uuid}] Failed to bind hotkey '${name}' (${combo}): ${e}`);
+                    }
+                }
             }
         }
 
@@ -316,8 +330,14 @@ class KeybindingManager {
             if (this._resolveCustomKeybindingConflicts(activeAccels)) {
                 for (let [name, combo, handler] of bindings) {
                     if (combo && combo.trim()) {
-                        Main.keybindingManager.removeHotKey(name);
-                        Main.keybindingManager.addHotKey(name, combo, handler);
+                        try {
+                            Main.keybindingManager.removeHotKey(name);
+                            Main.keybindingManager.addHotKey(name, combo, handler);
+                        } catch (e) {
+                            if (typeof global !== 'undefined' && global.logError) {
+                                global.logError(`[${this.wm.uuid}] Failed to rebind hotkey '${name}': ${e}`);
+                            }
+                        }
                     }
                 }
             }

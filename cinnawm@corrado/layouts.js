@@ -83,6 +83,8 @@ var LAYOUTS = [
     }
 ];
 
+const VALID_LAYOUT_IDS = new Set(LAYOUTS.map(l => l.id));
+
 function getLayoutMeta(layoutId) {
     for (let i = 0; i < LAYOUTS.length; i++) {
         if (LAYOUTS[i].id === layoutId) {
@@ -90,6 +92,71 @@ function getLayoutMeta(layoutId) {
         }
     }
     return LAYOUTS[0];
+}
+
+/**
+ * Resolves effective Master orientation, optionally rotating horizontal split
+ * ('left'/'right') into vertical stack ('top'/'bottom') on portrait monitors (height > width).
+ */
+function resolveEffectiveMasterOrientation(orientation, area, autoOrientation = true) {
+    let eff = orientation || 'left';
+    if (autoOrientation && area &&
+        Number.isFinite(area.width) && Number.isFinite(area.height) &&
+        area.height > area.width) {
+        if (eff === 'left') return 'top';
+        if (eff === 'right') return 'bottom';
+    }
+    return eff;
+}
+
+/**
+ * Parses per-workspace default layout configuration string (e.g. "1=scrolling, 2=master-stack").
+ */
+function parseWorkspaceDefaultLayouts(raw) {
+    let map = new Map();
+    if (!raw || typeof raw !== 'string') return map;
+    for (let part of raw.split(/[\n,;]+/)) {
+        let trimmed = part.trim();
+        if (!trimmed || trimmed.startsWith('#')) continue;
+        let sep = trimmed.indexOf('=');
+        if (sep === -1) sep = trimmed.indexOf(':');
+        if (sep === -1) continue;
+        let wsNum = parseInt(trimmed.slice(0, sep).trim(), 10);
+        let layoutId = trimmed.slice(sep + 1).trim().toLowerCase();
+        if (Number.isFinite(wsNum) && wsNum >= 1 && VALID_LAYOUT_IDS.has(layoutId)) {
+            map.set(wsNum - 1, layoutId);
+        }
+    }
+    return map;
+}
+
+function resolveDefaultLayoutForWorkspace(wsIndex, settings = {}) {
+    if (Number.isFinite(wsIndex) && wsIndex >= 0 && settings && settings.workspaceDefaultLayouts) {
+        let map = parseWorkspaceDefaultLayouts(settings.workspaceDefaultLayouts);
+        if (map.has(wsIndex)) {
+            return map.get(wsIndex);
+        }
+    }
+    let fallback = settings && settings.defaultLayout ? settings.defaultLayout : 'dwindle';
+    return VALID_LAYOUT_IDS.has(fallback) ? fallback : 'dwindle';
+}
+
+/**
+ * Computes corner-pinned window rectangle (used for Picture-in-Picture / Sticky mode).
+ */
+function computeCornerRect(workarea, corner = 'bottom-right', widthPct = 28, heightPct = 28, marginPx = 16) {
+    let wa = workarea || { x: 0, y: 0, width: 1920, height: 1080 };
+    let margin = Math.max(0, Number.isFinite(marginPx) ? Math.round(marginPx) : 16);
+    let maxW = Math.max(160, wa.width - margin * 2);
+    let maxH = Math.max(120, wa.height - margin * 2);
+    let w = clamp(Math.round(wa.width * (clamp(Number(widthPct) || 28, 15, 65) / 100.0)), 180, maxW);
+    let h = clamp(Math.round(wa.height * (clamp(Number(heightPct) || 28, 15, 65) / 100.0)), 120, maxH);
+    let c = typeof corner === 'string' ? corner.toLowerCase() : 'bottom-right';
+    let isLeft = c.includes('left');
+    let isTop = c.includes('top');
+    let x = isLeft ? (wa.x + margin) : (wa.x + wa.width - w - margin);
+    let y = isTop ? (wa.y + margin) : (wa.y + wa.height - h - margin);
+    return { x: Math.round(x), y: Math.round(y), width: w, height: h };
 }
 
 function getNextLayoutId(currentId, direction = 1) {
@@ -223,7 +290,11 @@ function computeMasterStack(windowIds, area, options) {
     let innerGap = Number.isFinite(options.innerGap) ? options.innerGap : 0;
     let masterCount = clamp(options.masterCount || 1, 1, n);
     let masterRatio = clamp(options.masterRatio || 0.55, 0.15, 0.85);
-    let orientation = options.masterOrientation || 'left';
+    let orientation = resolveEffectiveMasterOrientation(
+        options.masterOrientation,
+        area,
+        options.masterAutoOrientation !== false
+    );
     let weights = options.weights || new Map();
     let colWeights = options.colWeights || weights;
     let minTileWidth = Math.max(1, options.overflowMinWidthPx || 220);
@@ -1576,6 +1647,7 @@ function computeLayoutRects(layoutId, windowIds, rawWorkarea, state, settings, m
         masterCount: state.masterCount,
         masterRatio: state.masterRatio,
         masterOrientation: state.masterOrientation,
+        masterAutoOrientation: settings.masterAutoOrientation !== false,
         masterSingleWindowWidthPct: settings.masterSingleWindowWidthPct || 100,
         centeredMasterRatio: Number.isFinite(state.centeredMasterRatio)
             ? state.centeredMasterRatio
@@ -1762,6 +1834,10 @@ module.exports = {
     snapRatioValue,
     getLayoutMeta,
     getNextLayoutId,
+    resolveEffectiveMasterOrientation,
+    parseWorkspaceDefaultLayouts,
+    resolveDefaultLayoutForWorkspace,
+    computeCornerRect,
     computeEffectiveWorkarea,
     computeGridDimensions,
     computeMasterStack,

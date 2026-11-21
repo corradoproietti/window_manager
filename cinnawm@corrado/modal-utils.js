@@ -30,7 +30,7 @@ function closeAllOtherModals(wm, exceptModal) {
     if (wm.activeBorder && wm.activeBorder !== exceptModal && wm.activeBorder.isStackPopupOpen) {
         wm.activeBorder._closeStackPopup();
     }
-    const modals = [wm.layoutSelector, wm.quickGrid, wm.resizeMode, wm.resizePreview];
+    const modals = [wm.layoutSelector, wm.quickGrid, wm.resizeMode, wm.resizePreview, wm.windowSwitcher];
     for (let m of modals) {
         if (m && m !== exceptModal) {
             if (typeof m.close === 'function' && m.isOpen) {

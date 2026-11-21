@@ -41,6 +41,7 @@ function _(str) {
 
 const VISUAL_SETTINGS_MAP = [
     ['default-layout', 'defaultLayout'],
+    ['workspace-default-layouts', 'workspaceDefaultLayouts'],
     ['auto-tiling-enabled', 'autoTilingEnabled'],
     ['dwindle-split-direction', 'dwindleSplitDirection'],
     ['dwindle-default-split-ratio-pct', 'dwindleDefaultSplitRatioPct'],
@@ -50,6 +51,7 @@ const VISUAL_SETTINGS_MAP = [
     ['master-ratio-pct', 'masterRatioPct'],
     ['master-count', 'masterCount'],
     ['master-orientation', 'masterOrientation'],
+    ['master-auto-orientation', 'masterAutoOrientation'],
     ['master-new-window-placement', 'masterNewWindowPlacement'],
     ['master-single-window-width-pct', 'masterSingleWindowWidthPct'],
     ['centered-master-ratio-pct', 'centeredMasterRatioPct'],
@@ -85,6 +87,9 @@ const VISUAL_SETTINGS_MAP = [
     ['active-border-stacked-color', 'activeBorderStackedColor'],
     ['active-border-width', 'activeBorderWidth'],
     ['active-border-radius', 'activeBorderRadius'],
+    ['smart-no-border', 'smartNoBorder'],
+    ['inactive-dimming-enabled', 'inactiveDimmingEnabled'],
+    ['inactive-window-opacity-pct', 'inactiveWindowOpacityPct'],
     ['show-osd', 'showOsd'],
     ['show-panel-indicator', 'showPanelIndicator'],
     ['grid-cols', 'gridCols'],
@@ -92,20 +97,59 @@ const VISUAL_SETTINGS_MAP = [
     ['floating-classes', 'floatingClasses'],
     ['custom-window-rules', 'customWindowRules'],
     ['scratchpad-width-pct', 'scratchpadWidthPct'],
-    ['scratchpad-height-pct', 'scratchpadHeightPct']
+    ['scratchpad-height-pct', 'scratchpadHeightPct'],
+    ['pip-corner', 'pipCorner'],
+    ['pip-width-pct', 'pipWidthPct'],
+    ['pip-height-pct', 'pipHeightPct']
 ];
 
 const PROP_TO_SCHEMA_KEY = new Map(
     [...VISUAL_SETTINGS_MAP, ...Keybindings.KEYBINDING_SETTINGS_MAP].map(([k, p]) => [p, k])
 );
 
+const CORE_FALLBACK_DEFAULTS = {
+    defaultLayout: 'dwindle',
+    autoTilingEnabled: true,
+    innerGap: 8,
+    outerGap: 8,
+    overflowMinWidthPx: 220,
+    overflowMinHeightPx: 150,
+    smartGaps: false,
+    mouseDragSwap: true,
+    mouseEdgeResize: true,
+    cursorFollowsFocus: false,
+    activeBorderEnabled: true,
+    activeBorderColor: 'rgba(94, 129, 244, 0.95)',
+    activeBorderStateColors: true,
+    activeBorderFloatingColor: 'rgba(245, 194, 17, 0.95)',
+    activeBorderStackedColor: 'rgba(180, 142, 173, 0.95)',
+    activeBorderWidth: 3,
+    activeBorderRadius: 8,
+    showOsd: true,
+    showPanelIndicator: true,
+    gridCols: 4,
+    gridRows: 3,
+    scratchpadWidthPct: 75,
+    scratchpadHeightPct: 70
+};
+
 function loadDefaultSettings(extensionPath) {
     let defaultsPath = `${extensionPath}/defaults.json`;
-    let [ok, contents] = GLib.file_get_contents(defaultsPath);
-    if (!ok || !contents) {
-        throw new Error(`Unable to read defaults.json at ${defaultsPath}`);
+    try {
+        let [ok, contents] = GLib.file_get_contents(defaultsPath);
+        if (!ok || !contents) {
+            throw new Error(`Unable to read defaults.json at ${defaultsPath}`);
+        }
+        let parsed = JSON.parse(ByteArray.toString(contents));
+        if (parsed && typeof parsed === 'object') {
+            return Object.assign({}, CORE_FALLBACK_DEFAULTS, parsed);
+        }
+    } catch (e) {
+        if (typeof global !== 'undefined' && global.logError) {
+            global.logError(`[${_runtimeUuid}] Failed to load defaults.json (${defaultsPath}), using built-in fallback: ${e}`);
+        }
     }
-    return JSON.parse(ByteArray.toString(contents));
+    return Object.assign({}, CORE_FALLBACK_DEFAULTS);
 }
 
 class CinnaWMExtension {
@@ -123,11 +167,15 @@ class CinnaWMExtension {
         this._pendingResizeIncXids = new Set(); // X11 window IDs with an active async PResizeInc clear
         this._resizeIncQueue = new Set(); // X11 window IDs queued for next idle batch clear
         this._resizeIncFlushIdleId = 0;
+        this._resizeIncCancellable = null;
+        this._previewIdleId = 0;
         this._winIdToXid = new Map(); // winId -> X11 window ID
 
         this.manualFloating = new Set(); // winId explicitly floated by user
         this.manualTiled = new Set();    // winId explicitly forced to tile by user
         this.savedFloatingRects = new Map(); // winId -> { x, y, width, height } before tiling
+        this.pipWindows = new Set(); // winId currently pinned in Picture-in-Picture / Sticky mode
+        this._pipPrevState = new Map(); // winId -> { wasTiled, rect }
 
         this._retileTimeoutId = 0;
         this._dragPollTimeoutId = 0;
@@ -144,22 +192,41 @@ class CinnaWMExtension {
         this.grabController = new GrabControllerModule.GrabController(this);
         this.ipcService = null;
 
-        this.settings = loadDefaultSettings(meta.path);
+        this.settings = loadDefaultSettings(meta ? meta.path : '.');
+    }
+
+    _safeRun(context, fn) {
+        try {
+            return fn();
+        } catch (e) {
+            if (typeof global !== 'undefined' && global.logError) {
+                global.logError(`[${this.uuid}] ${context}: ${e}`);
+            }
+            return undefined;
+        }
     }
 
     _addTimeout(delayMs, callback) {
         let id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, delayMs, () => {
             this._pendingTimeouts.delete(id);
             if (!this._enabled) return GLib.SOURCE_REMOVE;
-            return callback();
+            try {
+                return callback();
+            } catch (e) {
+                if (typeof global !== 'undefined' && global.logError) {
+                    global.logError(`[${this.uuid}] Scheduled callback error: ${e}`);
+                }
+                return GLib.SOURCE_REMOVE;
+            }
         });
         this._pendingTimeouts.add(id);
         return id;
     }
 
     enable() {
+        if (this._enabled) return;
         this._enabled = true;
-        this._initSettings();
+        this._safeRun('initSettings', () => this._initSettings());
         this._loadPersistedStates();
 
         this.scratchpad = new Scratchpad.ScratchpadManager(this);
@@ -170,108 +237,126 @@ class CinnaWMExtension {
         this.layoutSelector = new Overlays.LayoutSelectorPopup(this);
         this.quickGrid = new Overlays.QuickGridOverlay(this);
         this.resizeMode = new Overlays.ResizeModeController(this);
+        this.windowSwitcher = new Overlays.WindowSwitcherOverlay(this);
 
-        this.panelIndicator.setup();
-        this.keybindings.register();
+        this._safeRun('panelIndicator.setup', () => this.panelIndicator.setup());
+        this._safeRun('keybindings.register', () => this.keybindings.register());
         this._connectGlobalSignals();
 
         this.ipcService = new IpcService.CinnaWMIpcService(this);
-        this.ipcService.start();
+        this._safeRun('ipcService.start', () => this.ipcService.start());
 
-        let actors = Meta.get_window_actors(global.display);
-        for (let actor of actors) {
-            let mw = actor.get_meta_window();
-            if (mw) {
-                this._trackWindow(mw, true);
+        this._safeRun('initialWindowScan', () => {
+            let actors = Meta.get_window_actors(global.display);
+            for (let actor of actors) {
+                let mw = actor ? actor.get_meta_window() : null;
+                if (mw) {
+                    this._safeRun('trackInitialWindow', () => this._trackWindow(mw, true));
+                }
             }
-        }
+        });
 
-        this.queueRetile(true);
-        this._onFocusWindowChanged();
+        this._safeRun('initialRetile', () => {
+            this.queueRetile(true);
+            this._onFocusWindowChanged();
+        });
     }
 
     disable() {
         this._enabled = false;
-        this._savePersistedStates();
+        this._safeRun('savePersistedStates', () => this._savePersistedStates());
 
         if (this.ipcService) {
-            this.ipcService.destroy();
+            this._safeRun('ipcService.destroy', () => this.ipcService.destroy());
             this.ipcService = null;
         }
+        if (this._resizeIncCancellable) {
+            this._safeRun('resizeIncCancellable.cancel', () => this._resizeIncCancellable.cancel());
+            this._resizeIncCancellable = null;
+        }
+        if (this._previewIdleId) {
+            this._safeRun('removePreviewIdle', () => GLib.source_remove(this._previewIdleId));
+            this._previewIdleId = 0;
+        }
         if (this._retileTimeoutId) {
-            GLib.source_remove(this._retileTimeoutId);
+            this._safeRun('removeRetileTimeout', () => GLib.source_remove(this._retileTimeoutId));
             this._retileTimeoutId = 0;
         }
         if (this._resizeIncFlushIdleId) {
-            GLib.source_remove(this._resizeIncFlushIdleId);
+            this._safeRun('removeResizeIncIdle', () => GLib.source_remove(this._resizeIncFlushIdleId));
             this._resizeIncFlushIdleId = 0;
         }
         this._resizeIncQueue.clear();
         for (let tid of this._pendingTimeouts) {
-            GLib.source_remove(tid);
+            this._safeRun('removePendingTimeout', () => GLib.source_remove(tid));
         }
         this._pendingTimeouts.clear();
         this._postRetileSettleIds = [];
         this._postUnminimizeSettleIds = [];
-        this._stopDragPolling();
+        this._safeRun('stopDragPolling', () => this._stopDragPolling());
         this._grabState = null;
 
-        this.keybindings.unregister(true);
-        this.panelIndicator.remove();
+        this._safeRun('keybindings.unregister', () => this.keybindings.unregister(true));
+        this._safeRun('panelIndicator.remove', () => this.panelIndicator.remove());
 
         for (let winId of Array.from(this._windowSignals.keys())) {
             this._untrackWindowById(winId);
         }
         this._windowSignals.clear();
         this._winIdToXid.clear();
-        this._signals.disconnectAllSignals();
+        this._safeRun('disconnectGlobalSignals', () => this._signals.disconnectAllSignals());
 
-        if (this.resizeMode) {
-            this.resizeMode.destroy();
-            this.resizeMode = null;
-        }
-        if (this.quickGrid) {
-            this.quickGrid.destroy();
-            this.quickGrid = null;
-        }
-        if (this.layoutSelector) {
-            this.layoutSelector.destroy();
-            this.layoutSelector = null;
-        }
-        if (this.osd) {
-            this.osd.destroy();
-            this.osd = null;
-        }
-        if (this.resizePreview) {
-            this.resizePreview.destroy();
-            this.resizePreview = null;
-        }
-        if (this.dropPreview) {
-            this.dropPreview.destroy();
-            this.dropPreview = null;
-        }
-        if (this.activeBorder) {
-            this.activeBorder.destroy();
-            this.activeBorder = null;
-        }
-        if (this.scratchpad) {
-            this.scratchpad.destroy();
-            this.scratchpad = null;
+        this._safeRun('restorePipWindows', () => this._restoreAllPipWindows());
+        this.pipWindows.clear();
+        this._pipPrevState.clear();
+
+        const uiModules = [
+            'windowSwitcher',
+            'resizeMode',
+            'quickGrid',
+            'layoutSelector',
+            'osd',
+            'resizePreview',
+            'dropPreview',
+            'activeBorder',
+            'scratchpad'
+        ];
+        for (let prop of uiModules) {
+            if (this[prop]) {
+                this._safeRun(`${prop}.destroy`, () => this[prop].destroy());
+                this[prop] = null;
+            }
         }
         if (this.extSettings) {
-            this.extSettings.finalize();
+            this._safeRun('extSettings.finalize', () => this.extSettings.finalize());
             this.extSettings = null;
         }
     }
 
     _applySettingSideEffects(prop, value) {
         if (prop === 'defaultLayout') {
-            let newLayout = value || 'dwindle';
-            for (let st of this._states.values()) {
+            let overrides = Layouts.parseWorkspaceDefaultLayouts(this.settings.workspaceDefaultLayouts);
+            for (let [key, st] of this._states.entries()) {
+                let wsIdx = Number(String(key).split(':')[0]);
+                if (overrides.has(wsIdx)) continue;
+                let newLayout = value || 'dwindle';
                 st.previousLayoutId = null;
                 st.layoutId = newLayout;
                 st.autoTile = (this.settings.autoTilingEnabled !== false) && (newLayout !== 'floating');
             }
+        } else if (prop === 'workspaceDefaultLayouts') {
+            let overrides = Layouts.parseWorkspaceDefaultLayouts(value);
+            for (let [key, st] of this._states.entries()) {
+                let wsIdx = Number(String(key).split(':')[0]);
+                let targetLayout = overrides.has(wsIdx)
+                    ? overrides.get(wsIdx)
+                    : (this.settings.defaultLayout || 'dwindle');
+                st.previousLayoutId = null;
+                st.layoutId = targetLayout;
+                st.autoTile = (this.settings.autoTilingEnabled !== false) && (targetLayout !== 'floating');
+            }
+        } else if (prop === 'pipCorner' || prop === 'pipWidthPct' || prop === 'pipHeightPct') {
+            this._safeRun('repositionPipWindows', () => this._repositionAllPipWindows());
         } else if (prop === 'autoTilingEnabled') {
             for (let st of this._states.values()) {
                 st.autoTile = Boolean(value) && (st.layoutId !== 'floating');
@@ -410,23 +495,29 @@ class CinnaWMExtension {
     }
 
     openSettingsDialog(section = null) {
+        if (!this.meta || !this.meta.path) {
+            global.logError(`[${this.uuid}] Cannot open settings dialog: missing extension path`);
+            return;
+        }
         let scriptPath = GLib.build_filenamev([this.meta.path, 'settings-window.py']);
-        if (GLib.file_test(scriptPath, GLib.FileTest.EXISTS)) {
-            try {
-                let argv = ['python3', scriptPath];
-                if (section && typeof section === 'string') {
-                    argv.push(section);
-                }
-                GLib.spawn_async(
-                    this.meta.path,
-                    argv,
-                    null,
-                    GLib.SpawnFlags.SEARCH_PATH,
-                    null
-                );
-            } catch (e) {
-                global.logError(`[${this.uuid}] Failed to launch GTK settings window: ${e}`);
+        if (!GLib.file_test(scriptPath, GLib.FileTest.EXISTS)) {
+            global.logError(`[${this.uuid}] Settings script not found at ${scriptPath}`);
+            return;
+        }
+        try {
+            let argv = ['python3', scriptPath];
+            if (section && typeof section === 'string') {
+                argv.push(section);
             }
+            GLib.spawn_async(
+                this.meta.path,
+                argv,
+                null,
+                GLib.SpawnFlags.SEARCH_PATH,
+                null
+            );
+        } catch (e) {
+            global.logError(`[${this.uuid}] Failed to launch GTK settings window: ${e}`);
         }
     }
 
@@ -526,7 +617,10 @@ class CinnaWMExtension {
 
         let hooks = [];
         const connectWin = (sig, cb) => {
-            let id = metaWindow.connect(sig, cb);
+            let id = metaWindow.connect(sig, () => {
+                if (!this._enabled) return;
+                this._safeRun(`window:${sig}`, cb);
+            });
             hooks.push({ obj: metaWindow, id });
         };
 
@@ -585,9 +679,13 @@ class CinnaWMExtension {
 
         let evalRes = WindowRules.evaluateWindow(metaWindow, this.settings, this.manualFloating, this.manualTiled);
         if (!isInitialScan && evalRes.targetWorkspace !== null) {
-            let nWs = global.workspace_manager.get_n_workspaces();
-            if (evalRes.targetWorkspace < nWs) {
-                metaWindow.change_workspace_by_index(evalRes.targetWorkspace, false);
+            try {
+                let nWs = global.workspace_manager.get_n_workspaces();
+                if (evalRes.targetWorkspace < nWs) {
+                    metaWindow.change_workspace_by_index(evalRes.targetWorkspace, false);
+                }
+            } catch (e) {
+                global.logError(`[${this.uuid}] Failed to move window to workspace ${evalRes.targetWorkspace}: ${e}`);
             }
         }
         if (evalRes.scratchpad && this.scratchpad) {
@@ -694,6 +792,8 @@ class CinnaWMExtension {
         this.manualFloating.delete(winId);
         this.manualTiled.delete(winId);
         this.savedFloatingRects.delete(winId);
+        this.pipWindows.delete(winId);
+        this._pipPrevState.delete(winId);
         this._windowMinSizes.delete(winId);
         if (this.scratchpad) {
             this.scratchpad.onWindowClosed(winId);
@@ -755,7 +855,7 @@ class CinnaWMExtension {
     getState(wsIndex, monitorIndex) {
         let key = this.getStateKey(wsIndex, monitorIndex);
         if (!this._states.has(key)) {
-            this._states.set(key, new StateStore.WorkspaceMonitorState(this.settings));
+            this._states.set(key, new StateStore.WorkspaceMonitorState(this.settings, wsIndex));
         }
         return this._states.get(key);
     }
@@ -782,7 +882,8 @@ class CinnaWMExtension {
             if (!mw) continue;
 
             let winId = mw.get_stable_sequence();
-            if (this.scratchpad && this.scratchpad.has(winId)) {
+            if ((this.scratchpad && this.scratchpad.has(winId)) ||
+                (this.pipWindows && this.pipWindows.has(winId))) {
                 continue;
             }
             let ws = mw.get_workspace();
@@ -847,13 +948,14 @@ class CinnaWMExtension {
         }
 
         if (immediate) {
-            this.retileActiveWorkspace();
+            this._safeRun('retileActiveWorkspace', () => this.retileActiveWorkspace());
             return;
         }
 
         this._retileTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 18, () => {
             this._retileTimeoutId = 0;
-            this.retileActiveWorkspace();
+            if (!this._enabled) return GLib.SOURCE_REMOVE;
+            this._safeRun('retileActiveWorkspace', () => this.retileActiveWorkspace());
             return GLib.SOURCE_REMOVE;
         });
     }
@@ -1068,19 +1170,16 @@ class CinnaWMExtension {
             for (let [winId, targetRect] of rectsMap.entries()) {
                 let mw = tileableMap.get(winId);
                 if (mw && !targetRect.offscreen && winId !== state.focusedId) {
-                    mw.raise();
-                    raisedAnyTiled = true;
+                    if (WindowRules.safeRaiseWindow(mw)) raisedAnyTiled = true;
                 }
             }
             let focusedMw = tileableMap.get(state.focusedId);
-            if (focusedMw) {
-                focusedMw.raise();
+            if (focusedMw && WindowRules.safeRaiseWindow(focusedMw)) {
                 raisedAnyTiled = true;
             }
         } else if (state.layoutId === 'monocle') {
             let focusedMw = tileableMap.get(state.focusedId);
-            if (focusedMw) {
-                focusedMw.raise();
+            if (focusedMw && WindowRules.safeRaiseWindow(focusedMw)) {
                 raisedAnyTiled = true;
             }
         } else {
@@ -1089,8 +1188,7 @@ class CinnaWMExtension {
                     if (!Array.isArray(grp) || grp.length < 2) continue;
                     let activeTabId = state.activeTabMap.get(grp[0]) || grp[0];
                     let activeTabMw = tileableMap.get(activeTabId);
-                    if (activeTabMw) {
-                        activeTabMw.raise();
+                    if (activeTabMw && WindowRules.safeRaiseWindow(activeTabMw)) {
                         raisedAnyTiled = true;
                     }
                 }
@@ -1098,8 +1196,7 @@ class CinnaWMExtension {
             let focusedRect = rectsMap.get(state.focusedId);
             if (focusedRect && focusedRect.stacked) {
                 let focusedMw = tileableMap.get(state.focusedId);
-                if (focusedMw) {
-                    focusedMw.raise();
+                if (focusedMw && WindowRules.safeRaiseWindow(focusedMw)) {
                     raisedAnyTiled = true;
                 }
             }
@@ -1107,21 +1204,13 @@ class CinnaWMExtension {
 
         if (floatingAboveToRestore.length > 0 && raisedAnyTiled) {
             for (let fw of floatingAboveToRestore) {
-                try {
-                    fw.raise();
-                } catch (e) {
-                    // ignore
-                }
+                WindowRules.safeRaiseWindow(fw);
             }
         }
 
         if (popupDialogsToRaise.length > 0) {
             for (let pw of popupDialogsToRaise) {
-                try {
-                    pw.raise();
-                } catch (e) {
-                    // ignore
-                }
+                WindowRules.safeRaiseWindow(pw);
             }
         }
 
@@ -1297,12 +1386,15 @@ class CinnaWMExtension {
         let rw = Math.round(targetRect.width);
         let rh = Math.round(targetRect.height);
 
-        let wasMaximized = metaWindow.get_maximized() !== 0;
-        if (wasMaximized) {
-            metaWindow.unmaximize(Meta.MaximizeFlags.BOTH);
+        let wasMaximized = false;
+        let cur = null;
+        try {
+            wasMaximized = metaWindow.get_maximized() !== 0;
+            cur = metaWindow.get_frame_rect();
+        } catch (e) {
+            return;
         }
 
-        let cur = metaWindow.get_frame_rect();
         let dx = Math.abs(cur.x - rx);
         let dy = Math.abs(cur.y - ry);
         let dw = Math.abs(cur.width - rw);
@@ -1316,18 +1408,13 @@ class CinnaWMExtension {
                 this._schedulePostUnminimizeSettle();
                 return;
             }
-            metaWindow.move_resize_frame(false, rx, ry, rw, rh);
-            metaWindow.move_frame(false, rx, ry);
+            WindowRules.safeApplyWindowFrame(metaWindow, rx, ry, rw, rh, wasMaximized);
 
             if (wasMaximized) {
                 this._addTimeout(45, () => {
                     if (!this._grabState && this._windowSignals.has(metaWindow.get_stable_sequence())) {
-                        try {
-                            metaWindow.move_resize_frame(false, rx, ry, rw, rh);
-                            metaWindow.move_frame(false, rx, ry);
-                            if (this.activeBorder) this.activeBorder.sync();
-                        } catch (e) {
-                            // Window might have closed
+                        if (WindowRules.safeApplyWindowFrame(metaWindow, rx, ry, rw, rh, false) && this.activeBorder) {
+                            this.activeBorder.sync();
                         }
                     }
                     return GLib.SOURCE_REMOVE;
@@ -1406,9 +1493,14 @@ class CinnaWMExtension {
         }
         toState.focusedId = winId;
 
-        metaWindow.move_to_monitor(toMonIdx);
-        metaWindow.raise();
-        metaWindow.activate(global.get_current_time());
+        try {
+            metaWindow.move_to_monitor(toMonIdx);
+        } catch (e) {
+            global.logError(`[${this.uuid}] Failed to move window across monitors: ${e}`);
+            return false;
+        }
+        WindowRules.safeRaiseWindow(metaWindow);
+        WindowRules.safeActivateWindow(metaWindow, global.get_current_time());
 
         this.queueRetile(true);
 
@@ -1570,8 +1662,8 @@ class CinnaWMExtension {
         if (resolved.state) {
             resolved.state.focusedId = targetWin.get_stable_sequence();
         }
-        targetWin.raise();
-        targetWin.activate(global.get_current_time());
+        WindowRules.safeRaiseWindow(targetWin);
+        WindowRules.safeActivateWindow(targetWin, global.get_current_time());
         this._scheduleCursorWarp(targetWin, 0);
         if (resolved.state && resolved.wsIdx >= 0) {
             this._showStackPositionOsd(resolved.state, targetWin, resolved.wsIdx, resolved.monIdx);
@@ -1616,8 +1708,8 @@ class CinnaWMExtension {
                     let targetWin = tileable.get(targetId);
                     if (targetWin) {
                         state.focusedId = targetId;
-                        targetWin.raise();
-                        targetWin.activate(global.get_current_time());
+                        WindowRules.safeRaiseWindow(targetWin);
+                        WindowRules.safeActivateWindow(targetWin, global.get_current_time());
                         this.queueRetile(true);
                         this._scheduleCursorWarp(targetWin, 0);
                         this._showStackPositionOsd(state, targetWin, wsIdx, monIdx);
@@ -1644,8 +1736,8 @@ class CinnaWMExtension {
                         let targetWin = tileable.get(order[nextIdx]);
                         if (targetWin) {
                             state.focusedId = order[nextIdx];
-                            targetWin.raise();
-                            targetWin.activate(global.get_current_time());
+                            WindowRules.safeRaiseWindow(targetWin);
+                            WindowRules.safeActivateWindow(targetWin, global.get_current_time());
                             this.queueRetile(true);
                             this._scheduleCursorWarp(targetWin, state.layoutId === 'scrolling' ? 50 : 0);
                             this._showStackPositionOsd(state, targetWin, wsIdx, monIdx);
@@ -1656,8 +1748,8 @@ class CinnaWMExtension {
                     let tileable = this.getTileableWindowsMap(wsIdx, monIdx);
                     let onlyWin = tileable.get(order[0]);
                     if (onlyWin) {
-                        onlyWin.raise();
-                        onlyWin.activate(global.get_current_time());
+                        WindowRules.safeRaiseWindow(onlyWin);
+                        WindowRules.safeActivateWindow(onlyWin, global.get_current_time());
                     }
                 }
             }
@@ -1678,14 +1770,11 @@ class CinnaWMExtension {
         let focusId = focusWin.get_stable_sequence();
 
         if (!state.autoTile || !state.windowOrder.includes(focusId)) {
-            if (focusWin.get_maximized()) {
-                focusWin.unmaximize(Meta.MaximizeFlags.BOTH);
-            }
             let r = focusWin.get_frame_rect();
             let step = 48;
             let nx = r.x + (direction === 'left' ? -step : direction === 'right' ? step : 0);
             let ny = r.y + (direction === 'up' ? -step : direction === 'down' ? step : 0);
-            focusWin.move_frame(false, nx, ny);
+            WindowRules.safeApplyWindowFrame(focusWin, nx, ny, 0, 0, true);
             return;
         }
 
@@ -1859,12 +1948,11 @@ class CinnaWMExtension {
 
             let saved = this.savedFloatingRects.get(winId);
             if (saved) {
-                focusWin.move_resize_frame(false, saved.x, saved.y, saved.width, saved.height);
-                focusWin.move_frame(false, saved.x, saved.y);
+                WindowRules.safeApplyWindowFrame(focusWin, saved.x, saved.y, saved.width, saved.height, false);
             } else {
                 this.centerWindowOnMonitor(focusWin, 0.65, 0.65);
             }
-            focusWin.raise();
+            WindowRules.safeRaiseWindow(focusWin);
             if (this.osd) {
                 this.osd.show('[~]', _('Floating Window'), focusWin.get_wm_class() || focusWin.get_title() || '', 'cinnawm-layout-floating-symbolic.svg');
             }
@@ -1908,8 +1996,8 @@ class CinnaWMExtension {
             if (state.windowOrder.includes(winId)) {
                 state.focusedId = winId;
             }
-            win.raise();
-            win.activate(global.get_current_time());
+            WindowRules.safeRaiseWindow(win);
+            WindowRules.safeActivateWindow(win, global.get_current_time());
         }
 
         if (!state.autoTile || state.layoutId !== 'monocle') {
@@ -1961,9 +2049,6 @@ class CinnaWMExtension {
         let winId = focusWin.get_stable_sequence();
 
         if (!state.autoTile || state.layoutId === 'floating' || !state.windowOrder.includes(winId)) {
-            if (focusWin.get_maximized()) {
-                focusWin.unmaximize(Meta.MaximizeFlags.BOTH);
-            }
             let workarea = ws.get_work_area_for_monitor(monIdx);
             let r = focusWin.get_frame_rect();
             let dw = Math.round(workarea.width * deltaXRatio);
@@ -1972,7 +2057,7 @@ class CinnaWMExtension {
             let nh = Layouts.clamp(r.height + dh, Math.min(120, workarea.height), workarea.height);
             let nx = Layouts.clamp(r.x, workarea.x, workarea.x + workarea.width - nw);
             let ny = Layouts.clamp(r.y, workarea.y, workarea.y + workarea.height - nh);
-            focusWin.move_resize_frame(false, nx, ny, nw, nh);
+            WindowRules.safeApplyWindowFrame(focusWin, nx, ny, nw, nh, true);
             return;
         }
 
@@ -2115,6 +2200,222 @@ class CinnaWMExtension {
         this.queueRetile(true);
     }
 
+    _positionPipWindow(metaWindow) {
+        if (!metaWindow) return false;
+        let activeWs = global.workspace_manager.get_active_workspace();
+        let ws = metaWindow.get_workspace() || activeWs;
+        if (!ws) return false;
+        let monIdx = metaWindow.get_monitor();
+        let workarea = ws.get_work_area_for_monitor(monIdx);
+        if (!workarea || workarea.width <= 0 || workarea.height <= 0) return false;
+
+        let corner = this.settings.pipCorner || 'bottom-right';
+        let widthPct = this.settings.pipWidthPct || 28;
+        let heightPct = this.settings.pipHeightPct || 28;
+        let margin = Math.max(12, Number(this.settings.outerGap) || 12);
+        let rect = Layouts.computeCornerRect(workarea, corner, widthPct, heightPct, margin);
+        return WindowRules.safeApplyWindowFrame(metaWindow, rect.x, rect.y, rect.width, rect.height, true);
+    }
+
+    _repositionAllPipWindows() {
+        if (!this.pipWindows || this.pipWindows.size === 0) return;
+        let actors = Meta.get_window_actors(global.display);
+        for (let actor of actors) {
+            let mw = actor && typeof actor.get_meta_window === 'function' ? actor.get_meta_window() : null;
+            if (!mw) continue;
+            if (this.pipWindows.has(mw.get_stable_sequence())) {
+                this._positionPipWindow(mw);
+            }
+        }
+    }
+
+    _restoreAllPipWindows() {
+        if (!this.pipWindows || this.pipWindows.size === 0) return;
+        let actors = Meta.get_window_actors(global.display);
+        for (let actor of actors) {
+            let mw = actor && typeof actor.get_meta_window === 'function' ? actor.get_meta_window() : null;
+            if (!mw) continue;
+            if (this.pipWindows.has(mw.get_stable_sequence())) {
+                try {
+                    if (mw.is_on_all_workspaces()) mw.unstick();
+                    if (mw.is_above()) mw.unmake_above();
+                } catch (e) {
+                    // ignore closing window
+                }
+            }
+        }
+    }
+
+    toggleFocusedPip() {
+        let focusWin = this._getActiveNormalWindow();
+        if (!focusWin) return false;
+
+        let winId = focusWin.get_stable_sequence();
+        let isCurrentlyPip = this.pipWindows.has(winId) ||
+            (focusWin.is_on_all_workspaces() && focusWin.is_above() &&
+             !(this.scratchpad && this.scratchpad.has(winId)));
+
+        if (isCurrentlyPip) {
+            this.pipWindows.delete(winId);
+            let prev = this._pipPrevState.get(winId) || null;
+            this._pipPrevState.delete(winId);
+
+            try {
+                if (focusWin.is_on_all_workspaces()) focusWin.unstick();
+                if (focusWin.is_above()) focusWin.unmake_above();
+            } catch (e) {
+                // ignore closing window
+            }
+
+            let ws = focusWin.get_workspace() || global.workspace_manager.get_active_workspace();
+            if (prev && prev.wasTiled && ws) {
+                if (!prev.prevManualFloating) {
+                    this.manualFloating.delete(winId);
+                }
+                let st = this.getState(ws.index(), focusWin.get_monitor());
+                if (st) {
+                    if (!st.windowOrder.includes(winId)) st.windowOrder.push(winId);
+                    if (Array.isArray(st.fullWindowOrder) && !st.fullWindowOrder.includes(winId)) {
+                        st.fullWindowOrder.push(winId);
+                    }
+                }
+            } else if (prev && prev.rect) {
+                WindowRules.safeApplyWindowFrame(
+                    focusWin,
+                    prev.rect.x,
+                    prev.rect.y,
+                    prev.rect.width,
+                    prev.rect.height,
+                    true
+                );
+            }
+
+            if (this.osd) {
+                this.osd.show(
+                    '[PiP]',
+                    _('Picture-in-Picture Disabled'),
+                    focusWin.get_title() || focusWin.get_wm_class() || '',
+                    'cinnawm-layout-floating-symbolic.svg'
+                );
+            }
+            this.queueRetile(true);
+            if (this.activeBorder) this.activeBorder.sync();
+            this._emitIpcStateChanged('pip-toggled');
+            return true;
+        }
+
+        let r = focusWin.get_frame_rect();
+        let ws = focusWin.get_workspace();
+        let wasTiled = false;
+        if (ws) {
+            let st = this.getState(ws.index(), focusWin.get_monitor());
+            wasTiled = Boolean(st && st.autoTile && st.layoutId !== 'floating' && st.windowOrder.includes(winId));
+        }
+        this._pipPrevState.set(winId, {
+            wasTiled,
+            prevManualFloating: this.manualFloating.has(winId),
+            rect: r ? { x: r.x, y: r.y, width: r.width, height: r.height } : null
+        });
+
+        for (let st of this._states.values()) {
+            Layouts.detachWindowFromState(st, winId);
+        }
+        if (this.scratchpad && this.scratchpad.has(winId)) {
+            this.scratchpad.unregisterWindow(focusWin);
+        }
+
+        this.pipWindows.add(winId);
+        try {
+            focusWin.stick();
+            focusWin.make_above();
+        } catch (e) {
+            global.logError(`[${this.uuid}] Failed to pin PiP window: ${e}`);
+        }
+        this._positionPipWindow(focusWin);
+        WindowRules.safeRaiseWindow(focusWin);
+        WindowRules.safeActivateWindow(focusWin, global.get_current_time());
+
+        if (this.osd) {
+            this.osd.show(
+                '[PiP]',
+                _('Picture-in-Picture Enabled'),
+                focusWin.get_title() || focusWin.get_wm_class() || '',
+                'cinnawm-layout-floating-symbolic.svg'
+            );
+        }
+        this.queueRetile(true);
+        if (this.activeBorder) this.activeBorder.sync();
+        this._emitIpcStateChanged('pip-toggled');
+        return true;
+    }
+
+    openWindowSwitcher() {
+        if (this.windowSwitcher) {
+            this.windowSwitcher.toggle();
+        }
+    }
+
+    activateWindowById(winId) {
+        let actors = Meta.get_window_actors(global.display);
+        let targetWin = null;
+        for (let actor of actors) {
+            let mw = actor && typeof actor.get_meta_window === 'function' ? actor.get_meta_window() : null;
+            if (mw && mw.get_stable_sequence() === winId) {
+                targetWin = mw;
+                break;
+            }
+        }
+        if (!targetWin) return false;
+
+        if (this.scratchpad && this.scratchpad.has(winId)) {
+            let shown = this.scratchpad.showScratchpadWindow(targetWin);
+            if (shown) {
+                this._scheduleCursorWarp(targetWin, 50);
+                if (this.activeBorder) this.activeBorder.sync();
+            }
+            return shown;
+        }
+
+        let ws = targetWin.get_workspace();
+        let activeWs = global.workspace_manager.get_active_workspace();
+        let now = global.get_current_time();
+        if (ws && activeWs && ws.index() !== activeWs.index() && !targetWin.is_on_all_workspaces()) {
+            try {
+                ws.activate(now);
+            } catch (e) {
+                // ignore workspace switch failure
+            }
+        }
+        try {
+            if (targetWin.minimized) {
+                targetWin.unminimize();
+            }
+        } catch (e) {
+            // ignore closing window
+        }
+
+        let effWs = targetWin.get_workspace() || activeWs;
+        let wsIdx = effWs ? effWs.index() : -1;
+        let monIdx = targetWin.get_monitor();
+        let state = wsIdx >= 0 ? this.getState(wsIdx, monIdx) : null;
+        if (state && state.autoTile && state.windowOrder.includes(winId)) {
+            state.focusedId = winId;
+            let grp = Layouts.findTabGroupForWindow(state, winId);
+            if (grp && state.activeTabMap) {
+                state.activeTabMap.set(grp[0], winId);
+            }
+        }
+
+        WindowRules.safeRaiseWindow(targetWin);
+        WindowRules.safeActivateWindow(targetWin, now);
+        this.queueRetile(true);
+        this._scheduleCursorWarp(targetWin, 50);
+        if (state && wsIdx >= 0) {
+            this._showStackPositionOsd(state, targetWin, wsIdx, monIdx);
+        }
+        return true;
+    }
+
     snapWindowToCustomRect(metaWindow, rect) {
         if (!metaWindow || !rect) return;
         let winId = metaWindow.get_stable_sequence();
@@ -2127,13 +2428,9 @@ class CinnaWMExtension {
         this.manualFloating.add(winId);
         this.manualTiled.delete(winId);
 
-        if (metaWindow.get_maximized()) {
-            metaWindow.unmaximize(Meta.MaximizeFlags.BOTH);
-        }
-        metaWindow.move_resize_frame(false, rect.x, rect.y, rect.width, rect.height);
-        metaWindow.move_frame(false, rect.x, rect.y);
-        metaWindow.raise();
-        metaWindow.activate(global.get_current_time());
+        WindowRules.safeApplyWindowFrame(metaWindow, rect.x, rect.y, rect.width, rect.height, true);
+        WindowRules.safeRaiseWindow(metaWindow);
+        WindowRules.safeActivateWindow(metaWindow, global.get_current_time());
         this.queueRetile(true);
     }
 
@@ -2169,8 +2466,8 @@ class CinnaWMExtension {
         let tileableMap = this.getTileableWindowsMap(wsIdx, monIdx);
         let sourceWin = tileableMap.get(sourceWinId);
         if (sourceWin) {
-            sourceWin.raise();
-            sourceWin.activate(global.get_current_time());
+            WindowRules.safeRaiseWindow(sourceWin);
+            WindowRules.safeActivateWindow(sourceWin, global.get_current_time());
         }
         this._savePersistedStates();
         this.queueRetile(true);
@@ -2199,8 +2496,8 @@ class CinnaWMExtension {
         let tileableMap = this.getTileableWindowsMap(wsIdx, monIdx);
         let win = tileableMap.get(winId);
         if (win) {
-            win.raise();
-            win.activate(global.get_current_time());
+            WindowRules.safeRaiseWindow(win);
+            WindowRules.safeActivateWindow(win, global.get_current_time());
         }
         this._savePersistedStates();
         this.queueRetile(true);
@@ -2272,20 +2569,19 @@ class CinnaWMExtension {
     }
 
     centerWindowOnMonitor(metaWindow, widthRatio = 0.70, heightRatio = 0.72) {
+        if (!metaWindow) return;
         let monIdx = metaWindow.get_monitor();
         let ws = metaWindow.get_workspace() || global.workspace_manager.get_active_workspace();
+        if (!ws) return;
         let workarea = ws.get_work_area_for_monitor(monIdx);
+        if (!workarea || workarea.width <= 0 || workarea.height <= 0) return;
 
         let w = Math.round(workarea.width * widthRatio);
         let h = Math.round(workarea.height * heightRatio);
         let x = workarea.x + Math.round((workarea.width - w) / 2);
         let y = workarea.y + Math.round((workarea.height - h) / 2);
 
-        if (metaWindow.get_maximized()) {
-            metaWindow.unmaximize(Meta.MaximizeFlags.BOTH);
-        }
-        metaWindow.move_resize_frame(false, x, y, w, h);
-        metaWindow.move_frame(false, x, y);
+        WindowRules.safeApplyWindowFrame(metaWindow, x, y, w, h, true);
     }
 
     _emitIpcStateChanged(reason = 'updated') {
@@ -2405,8 +2701,12 @@ class CinnaWMExtension {
 
         let destState = this.getState(targetIdx, monIdx);
         if (destState && destState.autoTile && destState.layoutId !== 'floating' && !this.manualFloating.has(winId)) {
-            if (focusWin.get_maximized()) {
-                focusWin.unmaximize(Meta.MaximizeFlags.BOTH);
+            try {
+                if (focusWin.get_maximized()) {
+                    focusWin.unmaximize(Meta.MaximizeFlags.BOTH);
+                }
+            } catch (e) {
+                // ignore unmaximize errors on closing window
             }
             if (!destState.windowOrder.includes(winId)) {
                 destState.windowOrder.push(winId);
@@ -2416,13 +2716,23 @@ class CinnaWMExtension {
             }
         }
 
-        focusWin.change_workspace(targetWs);
+        try {
+            focusWin.change_workspace(targetWs);
+        } catch (e) {
+            global.logError(`[${this.uuid}] Failed to move window to workspace ${targetIdx}: ${e}`);
+            return false;
+        }
         let now = global.get_current_time();
         if (typeof targetWs.activate_with_focus === 'function') {
-            targetWs.activate_with_focus(focusWin, now);
+            try {
+                targetWs.activate_with_focus(focusWin, now);
+            } catch (e) {
+                targetWs.activate(now);
+                WindowRules.safeActivateWindow(focusWin, now);
+            }
         } else {
             targetWs.activate(now);
-            focusWin.activate(now);
+            WindowRules.safeActivateWindow(focusWin, now);
         }
 
         this._savePersistedStates();
@@ -2516,8 +2826,8 @@ class CinnaWMExtension {
         }
 
         if (targetWin) {
-            targetWin.raise();
-            targetWin.activate(global.get_current_time());
+            WindowRules.safeRaiseWindow(targetWin);
+            WindowRules.safeActivateWindow(targetWin, global.get_current_time());
             this._scheduleCursorWarp(targetWin, 0);
             if (!this._showStackPositionOsd(targetState, targetWin, wsIdx, targetMon) && this.osd) {
                 let meta = Layouts.getLayoutMeta(targetState && targetState.autoTile ? targetState.layoutId : 'floating');
@@ -2590,6 +2900,8 @@ class CinnaWMExtension {
                 floating,
                 stacked: Boolean((tabGroup && tabGroup.length > 1) || (tileRect && tileRect.stacked)),
                 scratchpad: Boolean(this.scratchpad && this.scratchpad.has(winId)),
+                pip: Boolean((this.pipWindows && this.pipWindows.has(winId)) ||
+                    (mw.is_on_all_workspaces() && mw.is_above() && !(this.scratchpad && this.scratchpad.has(winId)))),
                 rect: rect ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : null
             });
         }
@@ -2603,23 +2915,33 @@ let _lastMetadata = null;
 
 function init(metadata) {
     _lastMetadata = metadata;
-    extensionInstance = new CinnaWMExtension(metadata);
+    try {
+        extensionInstance = new CinnaWMExtension(metadata);
+    } catch (e) {
+        global.logError(`[${_runtimeUuid}] Failed to initialize extension: ${e}`);
+        extensionInstance = null;
+    }
 }
 
 function enable() {
-    if (!extensionInstance && _lastMetadata) {
-        extensionInstance = new CinnaWMExtension(_lastMetadata);
+    try {
+        if (!extensionInstance && _lastMetadata) {
+            extensionInstance = new CinnaWMExtension(_lastMetadata);
+        }
+        if (!extensionInstance) return null;
+        extensionInstance.enable();
+        global.__cinnawm = extensionInstance;
+        return {
+            instance: extensionInstance,
+            onResetRatiosClicked: () => extensionInstance && extensionInstance.resetCurrentLayoutRatios(),
+            onOpenQuickGridClicked: () => extensionInstance && extensionInstance.quickGrid && extensionInstance.quickGrid.open(),
+            onCycleLayoutClicked: () => extensionInstance && extensionInstance.cycleLayout(1),
+            setLayoutById: (id) => extensionInstance && extensionInstance.setLayoutById(id)
+        };
+    } catch (e) {
+        global.logError(`[${_runtimeUuid}] Failed to enable extension: ${e}`);
+        return null;
     }
-    if (!extensionInstance) return null;
-    extensionInstance.enable();
-    global.__cinnawm = extensionInstance;
-    return {
-        instance: extensionInstance,
-        onResetRatiosClicked: () => extensionInstance && extensionInstance.resetCurrentLayoutRatios(),
-        onOpenQuickGridClicked: () => extensionInstance && extensionInstance.quickGrid && extensionInstance.quickGrid.open(),
-        onCycleLayoutClicked: () => extensionInstance && extensionInstance.cycleLayout(1),
-        setLayoutById: (id) => extensionInstance && extensionInstance.setLayoutById(id)
-    };
 }
 
 function disable() {
@@ -2627,7 +2949,12 @@ function disable() {
         global.__cinnawm = null;
     }
     if (extensionInstance) {
-        extensionInstance.disable();
-        extensionInstance = null;
+        try {
+            extensionInstance.disable();
+        } catch (e) {
+            global.logError(`[${_runtimeUuid}] Failed to disable extension cleanly: ${e}`);
+        } finally {
+            extensionInstance = null;
+        }
     }
 }

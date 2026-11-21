@@ -3,7 +3,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: cinnawm@corrado 1.0.0\n"
+"Project-Id-Version: cinnawm@corrado 1.0.1\n"
 "POT-Creation-Date: 2026-11-14 18:00+0100\n"
 "PO-Revision-Date: 2026-11-14 18:00+0100\n"
 "Last-Translator: CinnaWM Contributors\n"
@@ -1002,5 +1002,125 @@ msgstr "Monitor %d"
 
 msgid "Empty monitor"
 msgstr "Monitor vuoto"
+
+msgid "Picture-in-Picture Enabled"
+msgstr "Picture-in-Picture Attivato"
+
+msgid "Picture-in-Picture Disabled"
+msgstr "Picture-in-Picture Disattivato"
+
+msgid "Quick Window & Tab Switcher"
+msgstr "Selettore Rapido Finestre e Schede"
+
+msgid "Type to filter by title, app, ws1, tab, pip, scratchpad..."
+msgstr "Scrivi per filtrare per titolo, app, ws1, tab, pip, scratchpad..."
+
+msgid "Type to filter  •  ↑/↓ or Tab: Select  •  Enter: Activate  •  Esc: Close"
+msgstr "Scrivi per filtrare  •  ↑/↓ o Tab: Seleziona  •  Invio: Attiva  •  Esc: Chiudi"
+
+msgid "No matching windows"
+msgstr "Nessuna finestra corrispondente"
+
+msgid "Open Quick Window & Tab Switcher (fuzzy search)"
+msgstr "Apri il Selettore Rapido Finestre e Schede (ricerca istantanea)"
+
+msgid "Toggle Picture-in-Picture / Sticky corner window"
+msgstr "Attiva / Disattiva modalità Picture-in-Picture / Sticky nell'angolo"
+
+msgid "Per-Workspace Default Layouts"
+msgstr "Layout Predefiniti per Spazio di Lavoro"
+
+msgid "Optional initial layout overrides for Workspaces 1–6 (others inherit Global Default Layout)."
+msgstr "Layout iniziali personalizzati opzionali per gli spazi di lavoro 1–6 (gli altri ereditano il predefinito globale)."
+
+msgid "Inherit Global"
+msgstr "Eredita Globale"
+
+msgid "Smart No-Border (Single Window)"
+msgstr "Bordo Smart (Nascosto su Finestra Singola)"
+
+msgid "Hide the active border frame automatically when only a single tiled window is visible on the monitor."
+msgstr "Nasconde automaticamente il bordo attivo quando è visibile una sola finestra affiancata sul monitor."
+
+msgid "Dim Unfocused Windows"
+msgstr "Attenua Finestre Non Attive"
+
+msgid "Slightly reduce opacity of unfocused windows to highlight the currently focused window."
+msgstr "Riduce leggermente l'opacità delle finestre non focalizzate per evidenziare la finestra attiva."
+
+msgid "Unfocused Window Opacity"
+msgstr "Opacità Finestre Non Attive"
+
+msgid "Opacity percentage applied to inactive windows when window dimming is enabled."
+msgstr "Percentuale di opacità applicata alle finestre inattive quando l'attenuazione è attiva."
+
+msgid "Auto Portrait Rotation"
+msgstr "Rotazione Automatica Verticale"
+
+msgid "Automatically switch Left/Right Master splits to Top/Bottom on vertical (portrait) monitors."
+msgstr "Commuta automaticamente Master Sinistra/Destra in Alto/Basso sui monitor verticali (portrait)."
+
+msgid "Picture-in-Picture Corner (Super+Y)"
+msgstr "Angolo Picture-in-Picture (Super+Y)"
+
+msgid "Screen corner where sticky Picture-in-Picture windows are placed."
+msgstr "Angolo dello schermo in cui posizionare le finestre Picture-in-Picture fissate su tutti gli spazi."
+
+msgid "Bottom Right"
+msgstr "In basso a destra"
+
+msgid "Bottom Left"
+msgstr "In basso a sinistra"
+
+msgid "Top Right"
+msgstr "In alto a destra"
+
+msgid "Top Left"
+msgstr "In alto a sinistra"
+
+msgid "Picture-in-Picture Width (Super+Y)"
+msgstr "Larghezza Picture-in-Picture (Super+Y)"
+
+msgid "Width as a percentage of the monitor work area for PiP windows."
+msgstr "Larghezza percentuale rispetto al monitor per le finestre Picture-in-Picture."
+
+msgid "Picture-in-Picture Height (Super+Y)"
+msgstr "Altezza Picture-in-Picture (Super+Y)"
+
+msgid "Height as a percentage of the monitor work area for PiP windows."
+msgstr "Altezza percentuale rispetto al monitor per le finestre Picture-in-Picture."
+
+msgid "Failed to open System Settings"
+msgstr "Impossibile aprire le Impostazioni di Sistema"
+
+msgid "Per-workspace default layouts (e.g. 1=dwindle, 2=scrolling, 3=master-stack)"
+msgstr "Layout predefiniti per singolo spazio di lavoro (es. 1=dwindle, 2=scrolling, 3=master-stack)"
+
+msgid "Automatically switch Left/Right Master orientation to Top/Bottom on vertical (portrait) monitors"
+msgstr "Commuta automaticamente l'orientamento Master Sinistra/Destra in Alto/Basso sui monitor verticali"
+
+msgid "Hide active window border when only 1 tiled window is visible on the monitor"
+msgstr "Nasconde il bordo attivo quando è visibile una sola finestra affiancata sul monitor"
+
+msgid "Dim unfocused windows to highlight keyboard/mouse focus"
+msgstr "Attenua le finestre non attive per evidenziare il focus di tastiera/mouse"
+
+msgid "Opacity percentage for unfocused windows"
+msgstr "Percentuale di opacità per le finestre non focalizzate"
+
+msgid "Corner used for Picture-in-Picture / Sticky windows"
+msgstr "Angolo utilizzato per le finestre Picture-in-Picture / Sticky"
+
+msgid "Picture-in-Picture window width relative to monitor"
+msgstr "Larghezza della finestra Picture-in-Picture rispetto al monitor"
+
+msgid "Picture-in-Picture window height relative to monitor"
+msgstr "Altezza della finestra Picture-in-Picture rispetto al monitor"
+
+msgid "Toggle Picture-in-Picture / Sticky mode for active window"
+msgstr "Attiva / Disattiva modalità Picture-in-Picture / Sticky sulla finestra attiva"
+
+msgid "Open Quick Window & Tab Switcher"
+msgstr "Apri Selettore Rapido Finestre e Schede"
 
 

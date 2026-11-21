@@ -306,3 +306,82 @@
     color: #ffffff;
 }
 
+/* Quick Window & Tab Switcher Modal (Super+Tab) */
+.cinnawm-switcher-dialog {
+    background-color: rgba(22, 25, 37, 0.96);
+    border: 2px solid rgba(94, 129, 244, 0.85);
+    border-radius: 14px;
+    padding: 16px 18px;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.65);
+    min-width: 580px;
+}
+
+.cinnawm-switcher-header {
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 12.5pt;
+    margin-bottom: 8px;
+}
+
+.cinnawm-switcher-search {
+    background-color: rgba(12, 14, 22, 0.85);
+    border: 1px solid rgba(122, 162, 247, 0.55);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #e6edf3;
+    font-size: 10.5pt;
+    margin-bottom: 10px;
+}
+
+.cinnawm-switcher-list {
+    spacing: 4px;
+}
+
+.cinnawm-switcher-row {
+    background-color: rgba(255, 255, 255, 0.04);
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin: 2px 0;
+}
+
+.cinnawm-switcher-row:hover {
+    background-color: rgba(94, 129, 244, 0.22);
+    border-color: rgba(122, 162, 247, 0.45);
+}
+
+.cinnawm-switcher-row.selected {
+    background-color: rgba(94, 129, 244, 0.36);
+    border-color: rgba(130, 170, 255, 0.95);
+}
+
+.cinnawm-switcher-badge {
+    background-color: rgba(122, 162, 247, 0.20);
+    border: 1px solid rgba(122, 162, 247, 0.45);
+    border-radius: 5px;
+    color: #9dc0ff;
+    font-family: monospace;
+    font-weight: bold;
+    font-size: 8.5pt;
+    padding: 2px 6px;
+    margin-right: 10px;
+}
+
+.cinnawm-switcher-title {
+    color: #f4f6fa;
+    font-weight: bold;
+    font-size: 10pt;
+}
+
+.cinnawm-switcher-meta {
+    color: #9aa5ce;
+    font-size: 9pt;
+    margin-left: 10px;
+}
+
+.cinnawm-switcher-hint {
+    color: #8892b0;
+    font-size: 8.5pt;
+    margin-top: 10px;
+}
+

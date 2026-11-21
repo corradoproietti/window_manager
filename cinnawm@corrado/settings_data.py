@@ -64,6 +64,53 @@ try:
 except Exception:
     _ = lambda s: s
 
+VALID_LAYOUT_IDS = (
+    'dwindle',
+    'master-stack',
+    'centered-master',
+    'scrolling',
+    'monocle',
+    'grid',
+    'floating',
+)
+
+
+def parse_workspace_default_layouts(raw):
+    """Parses workspace layout override string (e.g. '1=dwindle, 2=scrolling') -> {1: 'dwindle', ...}."""
+    result = {}
+    if not raw or not isinstance(raw, str):
+        return result
+    for part in re.split(r'[\n,;]+', raw):
+        item = part.strip()
+        if not item or item.startswith('#'):
+            continue
+        sep = item.find('=')
+        if sep == -1:
+            sep = item.find(':')
+        if sep == -1:
+            continue
+        try:
+            ws_num = int(item[:sep].strip())
+        except Exception:
+            continue
+        layout_id = item[sep + 1:].strip().lower()
+        if ws_num >= 1 and layout_id in VALID_LAYOUT_IDS:
+            result[ws_num] = layout_id
+    return result
+
+
+def format_workspace_default_layouts(mapping):
+    """Formats {ws_num: layout_id} dict back into canonical '1=dwindle, 2=scrolling' form."""
+    if not isinstance(mapping, dict):
+        return ''
+    parts = []
+    for ws_num in sorted(k for k in mapping if isinstance(k, int) and k >= 1):
+        lid = str(mapping[ws_num] or '').strip().lower()
+        if lid in VALID_LAYOUT_IDS:
+            parts.append(f'{ws_num}={lid}')
+    return ', '.join(parts)
+
+
 _DEFAULTS_PATH = os.path.join(_EXT_DIR, 'defaults.json')
 with open(_DEFAULTS_PATH, 'r', encoding='utf-8') as _defaults_file:
     DEFAULT_SETTINGS = json.load(_defaults_file)
@@ -273,6 +320,7 @@ def get_shortcut_groups():
                 ('kbFocusUp', _('Move focus to the window Above')),
                 ('kbFocusDown', _('Move focus to the window Below')),
                 ('kbFocusMonitorNext', _('Focus the next monitor')),
+                ('kbWindowSwitcher', _('Open Quick Window & Tab Switcher (fuzzy search)')),
             ],
         ),
         (
@@ -311,6 +359,7 @@ def get_shortcut_groups():
                 ('kbScratchpadAssign', _('Add / Remove the active window from the Scratchpad')),
                 ('kbQuickGrid', _('Open the interactive Quick Snap Grid overlay (gTile style)')),
                 ('kbToggleFloating', _('Toggle Floating / Tiled state for the active window')),
+                ('kbTogglePip', _('Toggle Picture-in-Picture / Sticky corner window')),
                 ('kbCenterWindow', _('Float and center the active window on the monitor')),
                 ('kbResizeMode', _('Enter / Exit Modal Resize Mode')),
             ],

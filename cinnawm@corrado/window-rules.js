@@ -387,11 +387,7 @@ function arrangePopupOrDialogWindow(metaWindow, forceCenter = false) {
     if (!isManageableType) return;
 
     if (metaWindow.is_attached_dialog()) {
-        try {
-            metaWindow.raise();
-        } catch (e) {
-            // ignore
-        }
+        safeRaiseWindow(metaWindow);
         return;
     }
 
@@ -416,13 +412,17 @@ function arrangePopupOrDialogWindow(metaWindow, forceCenter = false) {
     let workarea = ws.get_work_area_for_monitor(monIdx);
     if (!workarea || workarea.width <= 0 || workarea.height <= 0) return;
 
-    if (metaWindow.get_maximized()) {
-        metaWindow.unmaximize(Meta.MaximizeFlags.BOTH);
+    let r;
+    try {
+        if (metaWindow.get_maximized()) {
+            metaWindow.unmaximize(Meta.MaximizeFlags.BOTH);
+        }
+        r = metaWindow.get_frame_rect();
+    } catch (e) {
+        return;
     }
-
-    let r = metaWindow.get_frame_rect();
-    if (r.width <= 20 || r.height <= 20) {
-        try { metaWindow.raise(); } catch (e) { /* ignore */ }
+    if (!r || r.width <= 20 || r.height <= 20) {
+        safeRaiseWindow(metaWindow);
         return;
     }
 
@@ -475,16 +475,66 @@ function arrangePopupOrDialogWindow(metaWindow, forceCenter = false) {
             ? clamp(centerY - Math.round(effH / 2), workarea.y + margin, Math.max(workarea.y + margin, workarea.y + workarea.height - effH - margin))
             : clamp(r.y, workarea.y + margin, Math.max(workarea.y + margin, workarea.y + workarea.height - effH - margin));
 
-        if (needsResize) {
-            metaWindow.move_resize_frame(false, nx, ny, effW, effH);
-        }
-        metaWindow.move_frame(false, nx, ny);
+        safeApplyWindowFrame(metaWindow, nx, ny, needsResize ? effW : 0, needsResize ? effH : 0, false);
     }
 
+    safeRaiseWindow(metaWindow);
+}
+
+/**
+ * Safely raises a Meta.Window without throwing if already unmanaging or disposed.
+ */
+function safeRaiseWindow(metaWindow) {
+    if (!metaWindow) return false;
     try {
-        metaWindow.raise();
+        if (typeof metaWindow.raise === 'function') {
+            metaWindow.raise();
+            return true;
+        }
     } catch (e) {
-        // ignore
+        // Window may already be unmanaging or disposed
+    }
+    return false;
+}
+
+/**
+ * Safely activates a Meta.Window without throwing if already unmanaging or disposed.
+ */
+function safeActivateWindow(metaWindow, timestamp = 0) {
+    if (!metaWindow) return false;
+    try {
+        if (typeof metaWindow.activate === 'function') {
+            metaWindow.activate(timestamp);
+            return true;
+        }
+    } catch (e) {
+        // Window may already be unmanaging or disposed
+    }
+    return false;
+}
+
+/**
+ * Safely applies frame geometry (and optional unmaximize) on a Meta.Window.
+ */
+function safeApplyWindowFrame(metaWindow, x, y, width = 0, height = 0, unmaximize = true) {
+    if (!metaWindow) return false;
+    try {
+        if (unmaximize && typeof metaWindow.get_maximized === 'function' && metaWindow.get_maximized()) {
+            metaWindow.unmaximize(Meta.MaximizeFlags.BOTH);
+        }
+        let rx = Math.round(x);
+        let ry = Math.round(y);
+        let rw = Math.round(width);
+        let rh = Math.round(height);
+        if (rw > 0 && rh > 0 && typeof metaWindow.move_resize_frame === 'function') {
+            metaWindow.move_resize_frame(false, rx, ry, rw, rh);
+        }
+        if (typeof metaWindow.move_frame === 'function') {
+            metaWindow.move_frame(false, rx, ry);
+        }
+        return true;
+    } catch (e) {
+        return false;
     }
 }
 
@@ -524,8 +574,7 @@ function recheckLatePopupOrDialog(wm, metaWindow, isInitialScan = false) {
     if (wasInTiledOrder) {
         let saved = wm.savedFloatingRects.get(winId);
         if (saved && saved.width > 120 && saved.height > 90) {
-            metaWindow.move_resize_frame(false, saved.x, saved.y, saved.width, saved.height);
-            metaWindow.move_frame(false, saved.x, saved.y);
+            safeApplyWindowFrame(metaWindow, saved.x, saved.y, saved.width, saved.height, false);
         }
         if (!isInitialScan) {
             arrangePopupOrDialogWindow(metaWindow, true);
@@ -580,25 +629,46 @@ function _flushX11ResizeIncrements(wm) {
     let batch = Array.from(wm._resizeIncQueue);
     wm._resizeIncQueue.clear();
 
-    try {
-        let proc = Gio.Subprocess.new(
-            ['python3', '-c', _X11_CLEAR_HINTS_PY, ...batch.map(String)],
-            Gio.SubprocessFlags.STDOUT_SILENCE | Gio.SubprocessFlags.STDERR_SILENCE
-        );
-        proc.wait_async(null, () => {
-            for (let xid of batch) {
-                if (wm._pendingResizeIncXids) wm._pendingResizeIncXids.delete(xid);
-                if (wm._clearedResizeIncXids) wm._clearedResizeIncXids.add(xid);
-            }
-            if (wm._enabled && wm._states) {
-                wm._schedulePostRetileSettle();
-            }
-        });
-    } catch (e) {
+    const finishBatch = (succeeded) => {
         for (let xid of batch) {
             if (wm._pendingResizeIncXids) wm._pendingResizeIncXids.delete(xid);
             if (wm._clearedResizeIncXids) wm._clearedResizeIncXids.add(xid);
         }
+        if (succeeded && wm._enabled && wm._states && typeof wm._schedulePostRetileSettle === 'function') {
+            wm._schedulePostRetileSettle();
+        }
+    };
+
+    try {
+        if (wm._resizeIncCancellable) {
+            try { wm._resizeIncCancellable.cancel(); } catch (e) {}
+        }
+        let cancellable = new Gio.Cancellable();
+        wm._resizeIncCancellable = cancellable;
+        let proc = Gio.Subprocess.new(
+            ['python3', '-c', _X11_CLEAR_HINTS_PY, ...batch.map(String)],
+            Gio.SubprocessFlags.STDOUT_SILENCE | Gio.SubprocessFlags.STDERR_SILENCE
+        );
+        proc.wait_async(cancellable, (_proc, res) => {
+            if (wm._resizeIncCancellable === cancellable) {
+                wm._resizeIncCancellable = null;
+            }
+            let ok = false;
+            try {
+                ok = proc.wait_finish(res) && proc.get_successful();
+            } catch (e) {
+                if (typeof global !== 'undefined' && global.logError &&
+                    !(typeof e.matches === 'function' && e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED))) {
+                    global.logError(`[${wm.uuid || 'cinnawm'}] Failed to relax X11 size hints: ${e}`);
+                }
+            }
+            finishBatch(!cancellable.is_cancelled() && ok);
+        });
+    } catch (e) {
+        if (typeof global !== 'undefined' && global.logError) {
+            global.logError(`[${wm.uuid || 'cinnawm'}] Failed to spawn X11 size hint helper: ${e}`);
+        }
+        finishBatch(false);
     }
 }
 
@@ -609,7 +679,12 @@ function _flushX11ResizeIncrements(wm) {
  */
 function clearX11ResizeIncrements(wm, metaWindow) {
     if (!wm || !wm._enabled || !metaWindow || typeof metaWindow.get_xwindow !== 'function') return;
-    let xid = metaWindow.get_xwindow();
+    let xid = 0;
+    try {
+        xid = metaWindow.get_xwindow();
+    } catch (e) {
+        return;
+    }
     if (!xid || wm._clearedResizeIncXids.has(xid) || wm._pendingResizeIncXids.has(xid)) return;
     wm._pendingResizeIncXids.add(xid);
     if (!wm._resizeIncQueue) {
@@ -624,6 +699,35 @@ function clearX11ResizeIncrements(wm, metaWindow) {
     }
 }
 
+/**
+ * Multi-token case-insensitive filter for Quick Window & Tab Switcher descriptors.
+ */
+function filterWindowDescriptors(windows, query = '') {
+    if (!Array.isArray(windows)) return [];
+    let q = typeof query === 'string' ? query.trim().toLowerCase() : '';
+    if (!q) return windows.slice();
+    let tokens = q.split(/\s+/).filter(Boolean);
+    return windows.filter(w => {
+        if (!w) return false;
+        let statusTags = [];
+        if (w.pip) statusTags.push('pip sticky');
+        if (w.scratchpad) statusTags.push('scratchpad');
+        if (w.stacked) statusTags.push('tab stacked');
+        if (w.floating) statusTags.push('floating');
+        if (w.minimized) statusTags.push('minimized');
+        let wsTag = Number.isFinite(w.workspace) && w.workspace >= 0 ? `ws${w.workspace + 1} ws ${w.workspace + 1}` : '';
+        let monTag = Number.isFinite(w.monitor) && w.monitor >= 0 ? `mon${w.monitor + 1} mon ${w.monitor + 1}` : '';
+        let haystack = [
+            w.title || '',
+            w.wmClass || '',
+            wsTag,
+            monTag,
+            statusTags.join(' ')
+        ].join(' ').toLowerCase();
+        return tokens.every(tok => haystack.includes(tok));
+    });
+}
+
 module.exports = {
     parseCustomRules,
     getCachedCustomRules,
@@ -632,5 +736,9 @@ module.exports = {
     evaluateWindow,
     arrangePopupOrDialogWindow,
     recheckLatePopupOrDialog,
-    clearX11ResizeIncrements
+    clearX11ResizeIncrements,
+    filterWindowDescriptors,
+    safeRaiseWindow,
+    safeActivateWindow,
+    safeApplyWindowFrame
 };

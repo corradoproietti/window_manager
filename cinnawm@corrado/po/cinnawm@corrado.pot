@@ -4,7 +4,7 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: cinnawm@corrado 1.0.0\n"
+"Project-Id-Version: cinnawm@corrado 1.0.1\n"
 "POT-Creation-Date: 2026-11-14 18:00+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
@@ -1002,5 +1002,125 @@ msgid "Monitor %d"
 msgstr ""
 
 msgid "Empty monitor"
+msgstr ""
+
+msgid "Picture-in-Picture Enabled"
+msgstr ""
+
+msgid "Picture-in-Picture Disabled"
+msgstr ""
+
+msgid "Quick Window & Tab Switcher"
+msgstr ""
+
+msgid "Type to filter by title, app, ws1, tab, pip, scratchpad..."
+msgstr ""
+
+msgid "Type to filter  •  ↑/↓ or Tab: Select  •  Enter: Activate  •  Esc: Close"
+msgstr ""
+
+msgid "No matching windows"
+msgstr ""
+
+msgid "Open Quick Window & Tab Switcher (fuzzy search)"
+msgstr ""
+
+msgid "Toggle Picture-in-Picture / Sticky corner window"
+msgstr ""
+
+msgid "Per-Workspace Default Layouts"
+msgstr ""
+
+msgid "Optional initial layout overrides for Workspaces 1–6 (others inherit Global Default Layout)."
+msgstr ""
+
+msgid "Inherit Global"
+msgstr ""
+
+msgid "Smart No-Border (Single Window)"
+msgstr ""
+
+msgid "Hide the active border frame automatically when only a single tiled window is visible on the monitor."
+msgstr ""
+
+msgid "Dim Unfocused Windows"
+msgstr ""
+
+msgid "Slightly reduce opacity of unfocused windows to highlight the currently focused window."
+msgstr ""
+
+msgid "Unfocused Window Opacity"
+msgstr ""
+
+msgid "Opacity percentage applied to inactive windows when window dimming is enabled."
+msgstr ""
+
+msgid "Auto Portrait Rotation"
+msgstr ""
+
+msgid "Automatically switch Left/Right Master splits to Top/Bottom on vertical (portrait) monitors."
+msgstr ""
+
+msgid "Picture-in-Picture Corner (Super+Y)"
+msgstr ""
+
+msgid "Screen corner where sticky Picture-in-Picture windows are placed."
+msgstr ""
+
+msgid "Bottom Right"
+msgstr ""
+
+msgid "Bottom Left"
+msgstr ""
+
+msgid "Top Right"
+msgstr ""
+
+msgid "Top Left"
+msgstr ""
+
+msgid "Picture-in-Picture Width (Super+Y)"
+msgstr ""
+
+msgid "Width as a percentage of the monitor work area for PiP windows."
+msgstr ""
+
+msgid "Picture-in-Picture Height (Super+Y)"
+msgstr ""
+
+msgid "Height as a percentage of the monitor work area for PiP windows."
+msgstr ""
+
+msgid "Failed to open System Settings"
+msgstr ""
+
+msgid "Per-workspace default layouts (e.g. 1=dwindle, 2=scrolling, 3=master-stack)"
+msgstr ""
+
+msgid "Automatically switch Left/Right Master orientation to Top/Bottom on vertical (portrait) monitors"
+msgstr ""
+
+msgid "Hide active window border when only 1 tiled window is visible on the monitor"
+msgstr ""
+
+msgid "Dim unfocused windows to highlight keyboard/mouse focus"
+msgstr ""
+
+msgid "Opacity percentage for unfocused windows"
+msgstr ""
+
+msgid "Corner used for Picture-in-Picture / Sticky windows"
+msgstr ""
+
+msgid "Picture-in-Picture window width relative to monitor"
+msgstr ""
+
+msgid "Picture-in-Picture window height relative to monitor"
+msgstr ""
+
+msgid "Toggle Picture-in-Picture / Sticky mode for active window"
+msgstr ""
+
+msgid "Open Quick Window & Tab Switcher"
 msgstr ""
 
