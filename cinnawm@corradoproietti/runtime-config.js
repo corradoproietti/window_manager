@@ -10,7 +10,7 @@ const ByteArray = imports.byteArray;
 const Gettext = imports.gettext;
 const GLib = imports.gi.GLib;
 
-const DEFAULT_UUID = 'cinnawm@corrado';
+const DEFAULT_UUID = 'cinnawm@corradoproietti';
 const DEFAULT_DBUS_NAME = 'org.cinnawm.Service';
 const DEFAULT_DBUS_PATH = '/org/cinnawm/Service';
 const DEFAULT_ALBERT_DBUS_NAME = 'org.cinnawm.AlbertSwitcher';

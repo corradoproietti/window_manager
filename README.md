@@ -1,6 +1,6 @@
 # CinnaWM
 
-Hybrid tiling and window management extension for the **Cinnamon Desktop Environment** (`cinnawm@corrado`).
+Hybrid tiling and window management extension for the **Cinnamon Desktop Environment** (`cinnawm@corradoproietti`).
 
 CinnaWM brings modern tiling workflows into Cinnamon without replacing Muffin, combining per-workspace automatic tiling layouts, smooth floating tools, Manual Tab Groups, multi-monitor awareness, a native GTK3 preferences app, and a dedicated session D-Bus IPC service.
 
@@ -26,11 +26,11 @@ When an area becomes too tight (`overflowMinWidthPx` / `overflowMinHeightPx`), o
 
 ### From Release Archive
 
-Download the installable release archive (`cinnawm@corrado-v1.0.1.zip`) and extract it into your Cinnamon extensions directory (or run `bash install.sh --zip=cinnawm@corrado-v1.0.1.zip`):
+Download the installable release archive (`cinnawm@corradoproietti-v1.0.1.zip`) and extract it into your Cinnamon extensions directory (or run `bash install.sh --zip=cinnawm@corradoproietti-v1.0.1.zip`):
 
 ```bash
 mkdir -p "${XDG_DATA_HOME:-$HOME/.local/share}/cinnamon/extensions"
-unzip -o cinnawm@corrado-v1.0.1.zip -d "${XDG_DATA_HOME:-$HOME/.local/share}/cinnamon/extensions/"
+unzip -o cinnawm@corradoproietti-v1.0.1.zip -d "${XDG_DATA_HOME:-$HOME/.local/share}/cinnamon/extensions/"
 ```
 
 Then enable **CinnaWM** in **System Settings → Extensions** (precompiled translations are bundled inside the archive).

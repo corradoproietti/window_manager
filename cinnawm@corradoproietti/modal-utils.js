@@ -91,7 +91,7 @@ function safePopModal(actor) {
 }
 
 /**
- * Creates an St.Icon from our custom SVG files in `cinnawm@corrado/icons/`
+ * Creates an St.Icon from our custom SVG files in `cinnawm@corradoproietti/icons/`
  */
 function createLayoutIcon(extensionPath, iconFile, iconSize = 16, styleClass = 'cinnawm-layout-icon') {
     let fullPath = `${extensionPath}/icons/${iconFile}`;

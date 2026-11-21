@@ -16,7 +16,7 @@ function loadCommonJsModule(relPath) {
     let fn = new Function('require', 'exports', 'module', code);
     fn((req) => {
         let target = req.endsWith('.js') ? req : req + '.js';
-        target = target.replace(/^\.\//, 'cinnawm@corrado/');
+        target = target.replace(/^\.\//, 'cinnawm@corradoproietti/');
         return loadCommonJsModule(target);
     }, exports, module);
     return module.exports;
@@ -29,15 +29,15 @@ function assert(cond, msg) {
 }
 
 print('=== 1. Validating JSON Schemas ===');
-let [, metaBytes] = GLib.file_get_contents('cinnawm@corrado/metadata.json');
+let [, metaBytes] = GLib.file_get_contents('cinnawm@corradoproietti/metadata.json');
 let meta = JSON.parse(ByteArray.toString(metaBytes));
-assert(meta.uuid === 'cinnawm@corrado', 'UUID must be cinnawm@corrado');
+assert(meta.uuid === 'cinnawm@corradoproietti', 'UUID must be cinnawm@corradoproietti');
 
-let [, schemaBytes] = GLib.file_get_contents('cinnawm@corrado/settings-schema.json');
+let [, schemaBytes] = GLib.file_get_contents('cinnawm@corradoproietti/settings-schema.json');
 let schema = JSON.parse(ByteArray.toString(schemaBytes));
 assert(schema.layout && schema.layout.pages.length === 4, 'Schema must have 4 pages');
 
-let [, defaultsBytes] = GLib.file_get_contents('cinnawm@corrado/defaults.json');
+let [, defaultsBytes] = GLib.file_get_contents('cinnawm@corradoproietti/defaults.json');
 let defaults = JSON.parse(ByteArray.toString(defaultsBytes));
 const toKebab = (s) => s.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
 let schemaValueKeys = Object.keys(schema).filter(k => schema[k] && typeof schema[k] === 'object' && 'default' in schema[k]);
@@ -62,7 +62,7 @@ for (let key of Object.keys(schema)) {
 print('  [OK] metadata.json, settings-schema.json & defaults.json are valid and synchronized');
 
 print('=== 2. Testing Layout Engine (layouts.js) ===');
-const Layouts = loadCommonJsModule('cinnawm@corrado/layouts.js');
+const Layouts = loadCommonJsModule('cinnawm@corradoproietti/layouts.js');
 
 const workarea = { x: 0, y: 0, width: 1920, height: 1080 };
 const settings = {
@@ -169,7 +169,7 @@ assert(Layouts.findDirectionalTarget(2, rects3.get(102), candidates, 'left') ===
 print('  [OK] Geometric Directional Navigation');
 
 print('=== 3. Testing Window Rules Parser (scratchpad.js) ===');
-const Scratchpad = loadCommonJsModule('cinnawm@corrado/scratchpad.js');
+const Scratchpad = loadCommonJsModule('cinnawm@corradoproietti/scratchpad.js');
 let rules = Scratchpad.parseCustomRules('Spotify:workspace=4\nKeePassXC:scratchpad, Steam:float');
 assert(rules.length === 3, 'Should parse 3 custom rules');
 assert(rules[0].pattern === 'spotify' && rules[0].workspace === 3, 'Spotify rule -> workspace index 3 (4th ws)');
@@ -825,11 +825,11 @@ print('=== 4j. Testing Super+D (Show Desktop / Minimize All) & Restore Across AL
 
 print('=== 4k. Testing Extracted Modules (bsp-tree.js, window-rules.js, state-store.js, grab-controller.js, keybindings.js) ===');
 {
-    const BspTreeMod = loadCommonJsModule('cinnawm@corrado/bsp-tree.js');
-    const WindowRulesMod = loadCommonJsModule('cinnawm@corrado/window-rules.js');
-    const StateStoreMod = loadCommonJsModule('cinnawm@corrado/state-store.js');
-    const GrabControllerMod = loadCommonJsModule('cinnawm@corrado/grab-controller.js');
-    const KeybindingsMod = loadCommonJsModule('cinnawm@corrado/keybindings.js');
+    const BspTreeMod = loadCommonJsModule('cinnawm@corradoproietti/bsp-tree.js');
+    const WindowRulesMod = loadCommonJsModule('cinnawm@corradoproietti/window-rules.js');
+    const StateStoreMod = loadCommonJsModule('cinnawm@corradoproietti/state-store.js');
+    const GrabControllerMod = loadCommonJsModule('cinnawm@corradoproietti/grab-controller.js');
+    const KeybindingsMod = loadCommonJsModule('cinnawm@corradoproietti/keybindings.js');
 
     assert(typeof BspTreeMod.BspTree === 'function', 'BspTree must be exported from bsp-tree.js');
     assert(typeof WindowRulesMod.parseCustomRules === 'function', 'parseCustomRules must be exported from window-rules.js');
@@ -868,7 +868,7 @@ print('=== 4k. Testing Extracted Modules (bsp-tree.js, window-rules.js, state-st
         assert(Boolean(KeybindingsMod.normalizeAccelerator(defaults[prop].split('::')[0])),
             `${prop} default primary accelerator must parse cleanly: ${defaults[prop]}`);
     }
-    let extSrcBytes = GLib.file_get_contents('cinnawm@corrado/extension.js')[1];
+    let extSrcBytes = GLib.file_get_contents('cinnawm@corradoproietti/extension.js')[1];
     let extSrc = ByteArray.toString(extSrcBytes);
     let visualMatches = [...extSrc.matchAll(/\['([a-z0-9-]+)',\s*'([A-Za-z0-9]+)'\]/g)];
     let mappedAllProps = new Set([...mappedKbProps, ...visualMatches.map(([, , p]) => p || '').filter(Boolean)]);
@@ -890,7 +890,7 @@ print('=== 4k. Testing Extracted Modules (bsp-tree.js, window-rules.js, state-st
     print('  [OK] Stack / Tab Group smooth directional exit candidate lookup');
 
     // RuntimeConfig parameterization & XDG isolation check
-    const RuntimeConfigMod = loadCommonJsModule('cinnawm@corrado/runtime-config.js');
+    const RuntimeConfigMod = loadCommonJsModule('cinnawm@corradoproietti/runtime-config.js');
     assert(RuntimeConfigMod.resolveUuid() === meta.uuid,
         'RuntimeConfig.resolveUuid() must resolve extension UUID consistently');
     assert(RuntimeConfigMod.getIpcConfig().busName === 'org.cinnawm.Service' &&
@@ -907,7 +907,7 @@ print('=== 4k. Testing Extracted Modules (bsp-tree.js, window-rules.js, state-st
 
 print('=== 4l. Testing Manual Tab Groups (Group, Ungroup, Dissolve, & Leader Close Transfer) ===');
 {
-    const StateStoreMod = loadCommonJsModule('cinnawm@corrado/state-store.js');
+    const StateStoreMod = loadCommonJsModule('cinnawm@corradoproietti/state-store.js');
     let wa = { x: 0, y: 0, width: 1920, height: 1080 };
     let st = new StateStoreMod.WorkspaceMonitorState({ defaultLayout: 'dwindle' });
     st.windowOrder = [10, 20, 30];
@@ -962,9 +962,9 @@ print('=== 4l. Testing Manual Tab Groups (Group, Ungroup, Dissolve, & Leader Clo
 print('=== 4m. Regression Tests for Fullscreen TabGroups, State Helpers, Chained BSP, & WindowRules ===');
 {
     const Meta = imports.gi.Meta;
-    const StateStoreMod = loadCommonJsModule('cinnawm@corrado/state-store.js');
-    const BspTreeMod = loadCommonJsModule('cinnawm@corrado/bsp-tree.js');
-    const WindowRulesMod = loadCommonJsModule('cinnawm@corrado/window-rules.js');
+    const StateStoreMod = loadCommonJsModule('cinnawm@corradoproietti/state-store.js');
+    const BspTreeMod = loadCommonJsModule('cinnawm@corradoproietti/bsp-tree.js');
+    const WindowRulesMod = loadCommonJsModule('cinnawm@corradoproietti/window-rules.js');
     let wa = { x: 0, y: 0, width: 1920, height: 1080 };
 
     // 1. Preserve tabGroups across minimized & fullscreen windows (mirrors _retileMonitor calling sync + computeLayoutRects)
@@ -1060,7 +1060,7 @@ print('=== 4m. Regression Tests for Fullscreen TabGroups, State Helpers, Chained
     print('  [OK] Layouts.computeGridDimensions & computeEffectiveWorkarea');
 
     // 6b. CinnaWMIpcService contract verification (ipc-service.js)
-    const IpcServiceMod = loadCommonJsModule('cinnawm@corrado/ipc-service.js');
+    const IpcServiceMod = loadCommonJsModule('cinnawm@corradoproietti/ipc-service.js');
     let nodeInfo = Gio.DBusNodeInfo.new_for_xml(IpcServiceMod.CINNAWM_IFACE_XML);
     let ifaceInfo = nodeInfo && nodeInfo.lookup_interface('org.cinnawm.Service');
     assert(ifaceInfo && ifaceInfo.signals.some(s => s.name === 'StateChanged'),
@@ -1311,10 +1311,10 @@ for (let f of [
     'runtime-config.js',
     'extension.js'
 ]) {
-    let [, b] = GLib.file_get_contents('cinnawm@corrado/' + f);
+    let [, b] = GLib.file_get_contents('cinnawm@corradoproietti/' + f);
     let src = ByteArray.toString(b);
     new Function('require', 'exports', 'module', src);
-    print(`  [OK] Syntax valid: cinnawm@corrado/${f}`);
+    print(`  [OK] Syntax valid: cinnawm@corradoproietti/${f}`);
 }
 
 print('\nALL TESTS PASSED SUCCESSFULLY!');

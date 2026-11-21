@@ -22,8 +22,8 @@ jobs:
 
       - name: Validate gettext catalogs and Python scripts
         run: |
-          python3 -m py_compile cinnawm@corrado/settings_data.py cinnawm@corrado/settings-window.py
-          msgfmt -c -o /dev/null cinnawm@corrado/po/it.po
+          python3 -m py_compile cinnawm@corradoproietti/settings_data.py cinnawm@corradoproietti/settings-window.py
+          msgfmt -c -o /dev/null cinnawm@corradoproietti/po/it.po
 
       - name: Build installable extension archive
         run: bash package-release.sh

@@ -1,5 +1,5 @@
 {
-    "uuid": "cinnawm@corrado",
+    "uuid": "cinnawm@corradoproietti",
     "name": "CinnaWM - Hybrid Tiling & Window Manager",
     "description": "Advanced hybrid tiling and window manager for Cinnamon (inspired by Hyprland, i3/Sway, dwm, Pop!_OS Shell, Niri, and gTile): Dwindle/BSP, Master-Stack, Centered Master, Scrolling Columns, Monocle, Scratchpad, Mouse Drag-to-Swap, Live Edge Resize, and Quick Snap Grid.",
     "version": "1.0.1",
