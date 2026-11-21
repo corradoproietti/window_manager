@@ -115,7 +115,45 @@ remove_legacy_backups() {
     fi
 }
 
+update_enabled_extensions() {
+    local mode="$1"
+    if ! command -v gsettings >/dev/null 2>&1 || ! command -v python3 >/dev/null 2>&1; then
+        return 0
+    fi
+    python3 - "${UUID}" "${mode}" <<'PY'
+import ast, subprocess, sys
+uuid, mode = sys.argv[1], sys.argv[2]
+try:
+    raw = subprocess.check_output(["gsettings", "get", "org.cinnamon", "enabled-extensions"], text=True).strip()
+    if raw.startswith("@as "):
+        raw = raw[4:].strip()
+    arr = list(ast.literal_eval(raw)) if raw else []
+    if mode == "add":
+        if uuid not in arr:
+            arr.append(uuid)
+            subprocess.check_call(["gsettings", "set", "org.cinnamon", "enabled-extensions", str(arr)])
+            print("changed")
+        else:
+            print("unchanged")
+    elif mode == "remove":
+        if uuid in arr:
+            new_arr = [u for u in arr if u != uuid]
+            subprocess.check_call(["gsettings", "set", "org.cinnamon", "enabled-extensions", str(new_arr)])
+            print("changed")
+        else:
+            print("unchanged")
+except Exception as e:
+    print(f"error:{e}")
+PY
+}
+
 if [ "${UNINSTALL}" = true ]; then
+    if [ "${ENABLE_EXT}" = true ]; then
+        UNINSTALL_STATUS="$(update_enabled_extensions remove)"
+        if [ "${UNINSTALL_STATUS}" = "changed" ]; then
+            echo "==> Disabled '${UUID}' in gsettings (org.cinnamon enabled-extensions)."
+        fi
+    fi
     echo "==> Removing ${UUID} and any legacy backups from ${DEST_BASE} ..."
     rm -rf "${DEST_DIR}"
     remove_legacy_backups
@@ -169,29 +207,28 @@ if command -v msgfmt >/dev/null 2>&1 && [ -d "${SRC_DIR}/po" ]; then
     done
 fi
 
+NEEDS_RELOAD="${RELOAD_EXT}"
+
 # Enable extension in gsettings if available and desired
-if [ "${ENABLE_EXT}" = true ] && command -v gsettings >/dev/null 2>&1 && command -v python3 >/dev/null 2>&1; then
-    python3 - "${UUID}" <<'PY'
-import ast, subprocess, sys
-uuid = sys.argv[1]
-try:
-    raw = subprocess.check_output(["gsettings", "get", "org.cinnamon", "enabled-extensions"], text=True).strip()
-    if raw.startswith("@as "):
-        raw = raw[4:].strip()
-    arr = list(ast.literal_eval(raw)) if raw else []
-    if uuid not in arr:
-        arr.append(uuid)
-        subprocess.check_call(["gsettings", "set", "org.cinnamon", "enabled-extensions", str(arr)])
-        print(f"==> Enabled '{uuid}' in gsettings (org.cinnamon enabled-extensions).")
-    else:
-        print(f"==> Extension '{uuid}' already enabled in gsettings.")
-except Exception as e:
-    print(f"Note: could not update gsettings automatically ({e}).")
-PY
+if [ "${ENABLE_EXT}" = true ]; then
+    ENABLE_STATUS="$(update_enabled_extensions add)"
+    case "${ENABLE_STATUS}" in
+        changed)
+            echo "==> Enabled '${UUID}' in gsettings (org.cinnamon enabled-extensions)."
+            # Updating enabled-extensions triggers Cinnamon's async loader; an immediate ReloadXlet would race it.
+            NEEDS_RELOAD=false
+            ;;
+        unchanged)
+            echo "==> Extension '${UUID}' already enabled in gsettings."
+            ;;
+        error:*)
+            echo "Note: could not update gsettings automatically (${ENABLE_STATUS#error:})."
+            ;;
+    esac
 fi
 
-# Trigger hot-reload in running Cinnamon session if requested
-if [ "${RELOAD_EXT}" = true ] && command -v dbus-send >/dev/null 2>&1; then
+# Trigger hot-reload in running Cinnamon session if requested and not just enabled via gsettings
+if [ "${NEEDS_RELOAD}" = true ] && command -v dbus-send >/dev/null 2>&1; then
     dbus-send --session --dest=org.Cinnamon --type=method_call /org/Cinnamon \
         org.Cinnamon.ReloadXlet string:"${UUID}" string:"EXTENSION" >/dev/null 2>&1 || true
     echo "==> Triggered Cinnamon live reload for ${UUID}."

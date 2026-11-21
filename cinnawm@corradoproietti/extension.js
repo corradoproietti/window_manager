@@ -2969,6 +2969,16 @@ let _lastMetadata = null;
 
 function init(metadata) {
     _lastMetadata = metadata;
+    if (extensionInstance && extensionInstance._enabled) {
+        try {
+            extensionInstance.disable();
+        } catch (e) {
+            global.logError(`[${_runtimeUuid}] Failed to disable previous instance during init: ${e}`);
+        }
+        if (global.__cinnawm === extensionInstance) {
+            global.__cinnawm = null;
+        }
+    }
     try {
         extensionInstance = new CinnaWMExtension(metadata);
     } catch (e) {
@@ -2979,6 +2989,15 @@ function init(metadata) {
 
 function enable() {
     try {
+        if (global.__cinnawm && global.__cinnawm !== extensionInstance) {
+            try {
+                global.__cinnawm.disable();
+            } catch (e) {
+                global.logError(`[${_runtimeUuid}] Failed to disable stale active instance before enable: ${e}`);
+            } finally {
+                global.__cinnawm = null;
+            }
+        }
         if (!extensionInstance && _lastMetadata) {
             extensionInstance = new CinnaWMExtension(_lastMetadata);
         }
