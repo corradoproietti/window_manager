@@ -24,7 +24,7 @@ done
 
 if [ -z "${SRC_DIR}" ]; then
     for candidate in "${SCRIPT_DIR}"/*/metadata.json; do
-        if [ -f "${candidate}" ]; then
+        if [ -f "${candidate}" ] && python3 -c "import json,sys; sys.exit(0 if json.load(open(sys.argv[1], encoding='utf-8')).get('uuid') else 1)" "${candidate}" 2>/dev/null; then
             SRC_DIR="$(dirname "${candidate}")"
             break
         fi
@@ -114,11 +114,11 @@ ${EXT_DESC}
 
 - **Hybrid Tiling Engine**: Per-\`(workspace, monitor)\` layouts including **Dwindle / BSP**, **Master & Stack**, **Centered Master 3-Column**, **Scrolling Columns**, **Monocle / Zen**, **Balanced Grid**, and **Floating**, with **Per-Workspace Default Layout** overrides and **Auto Portrait Rotation** on vertical monitors.
 - **Manual Tab Groups & Overflow Stacks**: \`Shift + Drag\` or \`Super + W\` / \`Super + Shift + T\` groups windows into tabbed cells with titlebar badges, scroll switching, and smooth directional keyboard exit (\`Super + H/J/K/L\` or Arrows).
-- **Quick Window & Tab Switcher (\`Super + Tab\`) & Picture-in-Picture (\`Super + Y\`)**: Modal fuzzy switcher across all workspaces, tabs, minimized windows, and scratchpad, plus sticky corner PiP mode with configurable size and screen corner.
+- **Quick Window & Tab Switching via Albert Launcher Companion & Picture-in-Picture (\`Super + Y\`)**: Exposes \`GetOpenWindows\`, \`ActivateWindow\`, and \`CloseWindow\` over \`org.cinnawm.Service\` plus \`Super + Tab\` D-Bus dispatch (\`org.cinnawm.AlbertSwitcher\`) for the companion native Albert plugin ([cinnawm_albert_switcher](https://github.com/corradoproietti/cinnawm_albert_switcher)); sticky corner PiP mode offers configurable size and screen corner.
 - **Direct Multi-Workspace & Multi-Monitor Actions**: Move windows across workspaces (\`Super + Shift + Page_Up/Page_Down\` or \`Super + Alt + Left/Right\`), throw/move across monitors (\`Super + Shift + O\`), and switch focus across monitors (\`Super + Alt + O\`).
 - **State-Aware Active Borders, Dimming & Cursor Follows Focus**: Distinct colors for Tiled, Floating/Scratchpad, and Stacked/Tabbed windows, **Smart No-Border** on single-window monitors, optional **Unfocused Window Dimming**, and pointer warping on keyboard/monitor navigation.
 - **Interactive Tools**: **Quick Snap Grid** (\`Super + G\`), **Modal Resize Mode** (\`Super + R\`), **Scratchpad** (\`Super + S\` / \`Super + \\\`\`), **Mouse Drag-to-Swap / Ctrl+Drag Edge Snap**, and live **Shared Edge Resize**.
-- **Hardened D-Bus IPC & Lifecycle Resilience**: All 17 session D-Bus methods on \`org.cinnawm.Service\` (\`StateChanged\` signal + action methods) protected against transient window/JSON failures with safe fallback handling in \`settings-window.py\` and duplicate-free installs in \`install.sh\`.
+- **Hardened D-Bus IPC & Lifecycle Resilience**: All session D-Bus methods on \`org.cinnawm.Service\` (\`StateChanged\` signal + \`GetOpenWindows\`, \`ActivateWindow\`, \`CloseWindow\`, and action methods) protected against transient window/JSON failures with safe fallback handling in \`settings-window.py\` and duplicate-free installs in \`install.sh\`.
 - **Full Gettext Localization**: English & Italian translations precompiled inside the extension archive.
 
 ## Installation from Release Archive

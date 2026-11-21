@@ -75,7 +75,12 @@ const CINNAWM_IFACE_XML = `
     <method name="TogglePip">
       <arg type="b" direction="out" name="ok"/>
     </method>
-    <method name="OpenWindowSwitcher">
+    <method name="ActivateWindow">
+      <arg type="i" direction="in" name="winId"/>
+      <arg type="b" direction="out" name="ok"/>
+    </method>
+    <method name="CloseWindow">
+      <arg type="i" direction="in" name="winId"/>
       <arg type="b" direction="out" name="ok"/>
     </method>
     <method name="GetOpenWindows">
@@ -270,11 +275,23 @@ class CinnaWMIpcService {
         });
     }
 
-    OpenWindowSwitcher() {
-        return this._safeCall('OpenWindowSwitcher', false, () => {
-            if (typeof this.wm.openWindowSwitcher !== 'function') return false;
-            this.wm.openWindowSwitcher();
-            return true;
+    ActivateWindow(winId) {
+        return this._safeCall('ActivateWindow', false, () => {
+            let id = Number(winId);
+            if (!Number.isInteger(id) || id <= 0 || typeof this.wm.activateWindowById !== 'function') {
+                return false;
+            }
+            return Boolean(this.wm.activateWindowById(id));
+        });
+    }
+
+    CloseWindow(winId) {
+        return this._safeCall('CloseWindow', false, () => {
+            let id = Number(winId);
+            if (!Number.isInteger(id) || id <= 0 || typeof this.wm.closeWindowById !== 'function') {
+                return false;
+            }
+            return Boolean(this.wm.closeWindowById(id));
         });
     }
 

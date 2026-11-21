@@ -669,10 +669,12 @@ class CinnaWMSettingsWindow(Gtk.ApplicationWindow):
             vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
             vbox.set_valign(Gtk.Align.CENTER)
             vbox.set_halign(Gtk.Align.FILL)
+            vbox.set_hexpand(True)
 
             t_lbl = Gtk.Label(label=title, xalign=0.0)
             t_lbl.get_style_context().add_class('cinnawm-row-title')
             t_lbl.set_halign(Gtk.Align.START)
+            t_lbl.set_hexpand(True)
             t_lbl.set_justify(Gtk.Justification.LEFT)
             t_lbl.set_line_wrap(True)
             t_lbl.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
@@ -681,6 +683,7 @@ class CinnaWMSettingsWindow(Gtk.ApplicationWindow):
             d_lbl.get_style_context().add_class('dim-label')
             d_lbl.get_style_context().add_class('cinnawm-row-desc')
             d_lbl.set_halign(Gtk.Align.START)
+            d_lbl.set_hexpand(True)
             d_lbl.set_justify(Gtk.Justification.LEFT)
             d_lbl.set_line_wrap(True)
             d_lbl.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
@@ -863,8 +866,10 @@ class CinnaWMSettingsWindow(Gtk.ApplicationWindow):
             ws_vbox.pack_start(ws_desc, False, False, 0)
 
             ws_grid = Gtk.Grid()
-            ws_grid.set_row_spacing(6)
-            ws_grid.set_column_spacing(14)
+            ws_grid.set_row_spacing(8)
+            ws_grid.set_column_spacing(16)
+            ws_grid.set_column_homogeneous(True)
+            ws_grid.set_hexpand(True)
             ws_choices = [
                 ('', _('Inherit Global')),
                 ('dwindle', _('Dwindle / BSP')),
@@ -882,11 +887,15 @@ class CinnaWMSettingsWindow(Gtk.ApplicationWindow):
 
             for idx_ws in range(6):
                 ws_num = idx_ws + 1
-                cell = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-                lbl = Gtk.Label(label=f'WS {ws_num}:')
+                cell = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+                cell.set_hexpand(True)
+                lbl = Gtk.Label(label=f'WS {ws_num}:', xalign=0.0)
                 lbl.get_style_context().add_class('dim-label')
+                lbl.set_width_chars(5)
+                lbl.set_halign(Gtk.Align.START)
                 lbl.set_valign(Gtk.Align.CENTER)
                 combo = Gtk.ComboBoxText()
+                combo.set_hexpand(True)
                 combo.set_valign(Gtk.Align.CENTER)
                 for cid, clabel in ws_choices:
                     combo.append(cid, clabel)
@@ -1514,13 +1523,15 @@ class CinnaWMSettingsWindow(Gtk.ApplicationWindow):
 
                 desc_lbl = Gtk.Label(label=desc_text, xalign=0.0)
                 desc_lbl.get_style_context().add_class('cinnawm-row-title')
-                desc_lbl.set_halign(Gtk.Align.START)
+                desc_lbl.set_halign(Gtk.Align.FILL)
+                desc_lbl.set_hexpand(True)
                 desc_lbl.set_valign(Gtk.Align.CENTER)
                 desc_lbl.set_justify(Gtk.Justification.LEFT)
                 desc_lbl.set_line_wrap(True)
                 desc_lbl.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
 
                 badges_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4)
+                badges_hbox.set_halign(Gtk.Align.END)
                 badges_hbox.set_valign(Gtk.Align.CENTER)
 
                 if prop_key:

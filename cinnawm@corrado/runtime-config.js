@@ -13,6 +13,8 @@ const GLib = imports.gi.GLib;
 const DEFAULT_UUID = 'cinnawm@corrado';
 const DEFAULT_DBUS_NAME = 'org.cinnawm.Service';
 const DEFAULT_DBUS_PATH = '/org/cinnawm/Service';
+const DEFAULT_ALBERT_DBUS_NAME = 'org.cinnawm.AlbertSwitcher';
+const DEFAULT_ALBERT_DBUS_PATH = '/org/cinnawm/AlbertSwitcher';
 
 let _cachedMetadata = null;
 
@@ -182,10 +184,23 @@ function getIpcConfig() {
     };
 }
 
+function getAlbertSwitcherConfig() {
+    let busName = _envOrDefault('CINNAWM_ALBERT_DBUS_NAME', DEFAULT_ALBERT_DBUS_NAME);
+    let objectPath = _envOrDefault('CINNAWM_ALBERT_DBUS_PATH', DEFAULT_ALBERT_DBUS_PATH);
+    let interfaceName = _envOrDefault('CINNAWM_ALBERT_DBUS_INTERFACE', DEFAULT_ALBERT_DBUS_NAME);
+    return {
+        busName,
+        objectPath,
+        interfaceName
+    };
+}
+
 module.exports = {
     DEFAULT_UUID,
     DEFAULT_DBUS_NAME,
     DEFAULT_DBUS_PATH,
+    DEFAULT_ALBERT_DBUS_NAME,
+    DEFAULT_ALBERT_DBUS_PATH,
     readMetadata,
     resolveUuid,
     getConfigRoot,
@@ -195,5 +210,6 @@ module.exports = {
     hasCompiledLocale,
     getLocaleDir,
     bindGettext,
-    getIpcConfig
+    getIpcConfig,
+    getAlbertSwitcherConfig
 };

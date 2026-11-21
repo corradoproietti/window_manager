@@ -55,29 +55,29 @@ for arg in "$@"; do
     esac
 done
 
+read_metadata_field() {
+    local meta_file="$1"
+    local field="$2"
+    python3 -c "import json, sys; print(json.load(open(sys.argv[1], encoding='utf-8')).get(sys.argv[2], ''))" "${meta_file}" "${field}"
+}
+
 detect_src_dir() {
     local search_root="$1"
     if [ -n "${SRC_DIR}" ] && [ -f "${SRC_DIR}/metadata.json" ]; then
         printf '%s\n' "${SRC_DIR}"
         return 0
     fi
-    if [ -f "${search_root}/metadata.json" ]; then
+    if [ -f "${search_root}/metadata.json" ] && [ -n "$(read_metadata_field "${search_root}/metadata.json" uuid)" ]; then
         printf '%s\n' "${search_root}"
         return 0
     fi
     for candidate in "${search_root}"/*/metadata.json; do
-        if [ -f "${candidate}" ]; then
+        if [ -f "${candidate}" ] && [ -n "$(read_metadata_field "${candidate}" uuid)" ]; then
             dirname "${candidate}"
             return 0
         fi
     done
     return 1
-}
-
-read_metadata_field() {
-    local meta_file="$1"
-    local field="$2"
-    python3 -c "import json, sys; print(json.load(open(sys.argv[1], encoding='utf-8')).get(sys.argv[2], ''))" "${meta_file}" "${field}"
 }
 
 SEARCH_ROOT="${SCRIPT_DIR}"

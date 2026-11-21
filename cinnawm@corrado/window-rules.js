@@ -699,35 +699,6 @@ function clearX11ResizeIncrements(wm, metaWindow) {
     }
 }
 
-/**
- * Multi-token case-insensitive filter for Quick Window & Tab Switcher descriptors.
- */
-function filterWindowDescriptors(windows, query = '') {
-    if (!Array.isArray(windows)) return [];
-    let q = typeof query === 'string' ? query.trim().toLowerCase() : '';
-    if (!q) return windows.slice();
-    let tokens = q.split(/\s+/).filter(Boolean);
-    return windows.filter(w => {
-        if (!w) return false;
-        let statusTags = [];
-        if (w.pip) statusTags.push('pip sticky');
-        if (w.scratchpad) statusTags.push('scratchpad');
-        if (w.stacked) statusTags.push('tab stacked');
-        if (w.floating) statusTags.push('floating');
-        if (w.minimized) statusTags.push('minimized');
-        let wsTag = Number.isFinite(w.workspace) && w.workspace >= 0 ? `ws${w.workspace + 1} ws ${w.workspace + 1}` : '';
-        let monTag = Number.isFinite(w.monitor) && w.monitor >= 0 ? `mon${w.monitor + 1} mon ${w.monitor + 1}` : '';
-        let haystack = [
-            w.title || '',
-            w.wmClass || '',
-            wsTag,
-            monTag,
-            statusTags.join(' ')
-        ].join(' ').toLowerCase();
-        return tokens.every(tok => haystack.includes(tok));
-    });
-}
-
 module.exports = {
     parseCustomRules,
     getCachedCustomRules,
@@ -737,7 +708,6 @@ module.exports = {
     arrangePopupOrDialogWindow,
     recheckLatePopupOrDialog,
     clearX11ResizeIncrements,
-    filterWindowDescriptors,
     safeRaiseWindow,
     safeActivateWindow,
     safeApplyWindowFrame

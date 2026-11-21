@@ -320,7 +320,7 @@ def get_shortcut_groups():
                 ('kbFocusUp', _('Move focus to the window Above')),
                 ('kbFocusDown', _('Move focus to the window Below')),
                 ('kbFocusMonitorNext', _('Focus the next monitor')),
-                ('kbWindowSwitcher', _('Open Quick Window & Tab Switcher (fuzzy search)')),
+                ('kbWindowSwitcher', _('Open Window & Tab Switcher in Albert (Super+Tab)')),
             ],
         ),
         (

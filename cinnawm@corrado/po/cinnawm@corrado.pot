@@ -1010,21 +1010,6 @@ msgstr ""
 msgid "Picture-in-Picture Disabled"
 msgstr ""
 
-msgid "Quick Window & Tab Switcher"
-msgstr ""
-
-msgid "Type to filter by title, app, ws1, tab, pip, scratchpad..."
-msgstr ""
-
-msgid "Type to filter  •  ↑/↓ or Tab: Select  •  Enter: Activate  •  Esc: Close"
-msgstr ""
-
-msgid "No matching windows"
-msgstr ""
-
-msgid "Open Quick Window & Tab Switcher (fuzzy search)"
-msgstr ""
-
 msgid "Toggle Picture-in-Picture / Sticky corner window"
 msgstr ""
 
@@ -1121,6 +1106,15 @@ msgstr ""
 msgid "Toggle Picture-in-Picture / Sticky mode for active window"
 msgstr ""
 
-msgid "Open Quick Window & Tab Switcher"
+msgid "Open Window & Tab Switcher in Albert (Super+Tab)"
+msgstr ""
+
+msgid "Open Window & Tab Switcher in Albert (cycle windows)"
+msgstr ""
+
+msgid "Albert CinnaWM Switcher Unavailable"
+msgstr ""
+
+msgid "Start Albert and enable CinnaWM Switcher in Plugins"
 msgstr ""
 

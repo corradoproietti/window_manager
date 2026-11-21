@@ -1009,21 +1009,6 @@ msgstr "Picture-in-Picture Attivato"
 msgid "Picture-in-Picture Disabled"
 msgstr "Picture-in-Picture Disattivato"
 
-msgid "Quick Window & Tab Switcher"
-msgstr "Selettore Rapido Finestre e Schede"
-
-msgid "Type to filter by title, app, ws1, tab, pip, scratchpad..."
-msgstr "Scrivi per filtrare per titolo, app, ws1, tab, pip, scratchpad..."
-
-msgid "Type to filter  •  ↑/↓ or Tab: Select  •  Enter: Activate  •  Esc: Close"
-msgstr "Scrivi per filtrare  •  ↑/↓ o Tab: Seleziona  •  Invio: Attiva  •  Esc: Chiudi"
-
-msgid "No matching windows"
-msgstr "Nessuna finestra corrispondente"
-
-msgid "Open Quick Window & Tab Switcher (fuzzy search)"
-msgstr "Apri il Selettore Rapido Finestre e Schede (ricerca istantanea)"
-
 msgid "Toggle Picture-in-Picture / Sticky corner window"
 msgstr "Attiva / Disattiva modalità Picture-in-Picture / Sticky nell'angolo"
 
@@ -1120,7 +1105,16 @@ msgstr "Altezza della finestra Picture-in-Picture rispetto al monitor"
 msgid "Toggle Picture-in-Picture / Sticky mode for active window"
 msgstr "Attiva / Disattiva modalità Picture-in-Picture / Sticky sulla finestra attiva"
 
-msgid "Open Quick Window & Tab Switcher"
-msgstr "Apri Selettore Rapido Finestre e Schede"
+msgid "Open Window & Tab Switcher in Albert (Super+Tab)"
+msgstr "Apri il selettore finestre e schede in Albert (Super+Tab)"
+
+msgid "Open Window & Tab Switcher in Albert (cycle windows)"
+msgstr "Apri il selettore finestre e schede in Albert (scorre tra le finestre)"
+
+msgid "Albert CinnaWM Switcher Unavailable"
+msgstr "CinnaWM Switcher in Albert non disponibile"
+
+msgid "Start Albert and enable CinnaWM Switcher in Plugins"
+msgstr "Avvia Albert e abilita CinnaWM Switcher nei Plugin"
 
 

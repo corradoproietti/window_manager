@@ -847,6 +847,6 @@
     "kb-window-switcher": {
         "type": "keybinding",
         "default": "<Super>Tab",
-        "description": "Open Quick Window & Tab Switcher"
+        "description": "Open Window & Tab Switcher in Albert (cycle windows)"
     }
 }

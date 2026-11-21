@@ -15,6 +15,7 @@ const ByteArray = imports.byteArray;
 const Clutter = imports.gi.Clutter;
 const Gdk = imports.gi.Gdk;
 const Gettext = imports.gettext;
+const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const Meta = imports.gi.Meta;
 const Main = imports.ui.main;
@@ -237,7 +238,6 @@ class CinnaWMExtension {
         this.layoutSelector = new Overlays.LayoutSelectorPopup(this);
         this.quickGrid = new Overlays.QuickGridOverlay(this);
         this.resizeMode = new Overlays.ResizeModeController(this);
-        this.windowSwitcher = new Overlays.WindowSwitcherOverlay(this);
 
         this._safeRun('panelIndicator.setup', () => this.panelIndicator.setup());
         this._safeRun('keybindings.register', () => this.keybindings.register());
@@ -311,7 +311,6 @@ class CinnaWMExtension {
         this._pipPrevState.clear();
 
         const uiModules = [
-            'windowSwitcher',
             'resizeMode',
             'quickGrid',
             'layoutSelector',
@@ -2350,21 +2349,62 @@ class CinnaWMExtension {
     }
 
     openWindowSwitcher() {
-        if (this.windowSwitcher) {
-            this.windowSwitcher.toggle();
+        let switcherCfg = RuntimeConfig.getAlbertSwitcherConfig();
+        try {
+            Gio.DBus.session.call(
+                switcherCfg.busName,
+                switcherCfg.objectPath,
+                switcherCfg.interfaceName,
+                'cycleWindow',
+                null,
+                new GLib.VariantType('(b)'),
+                Gio.DBusCallFlags.NONE,
+                1000,
+                null,
+                (conn, res) => {
+                    try {
+                        let reply = conn.call_finish(res);
+                        let ok = reply ? Boolean(reply.deep_unpack()[0]) : false;
+                        if (!ok && this.osd && this.settings && this.settings.showOsd) {
+                            this.osd.show(
+                                'SWITCHER',
+                                _('Albert CinnaWM Switcher Unavailable'),
+                                _('Start Albert and enable CinnaWM Switcher in Plugins'),
+                                'view-list-symbolic'
+                            );
+                        }
+                    } catch (e) {
+                        if (this.osd && this.settings && this.settings.showOsd) {
+                            this.osd.show(
+                                'SWITCHER',
+                                _('Albert CinnaWM Switcher Unavailable'),
+                                _('Start Albert and enable CinnaWM Switcher in Plugins'),
+                                'view-list-symbolic'
+                            );
+                        }
+                    }
+                }
+            );
+            return true;
+        } catch (e) {
+            global.logWarning(`[${_runtimeUuid}] openWindowSwitcher D-Bus error: ${e}`);
+            return false;
         }
     }
 
-    activateWindowById(winId) {
+    _findWindowById(winId) {
         let actors = Meta.get_window_actors(global.display);
-        let targetWin = null;
         for (let actor of actors) {
             let mw = actor && typeof actor.get_meta_window === 'function' ? actor.get_meta_window() : null;
             if (mw && mw.get_stable_sequence() === winId) {
-                targetWin = mw;
-                break;
+                return mw;
             }
         }
+        return null;
+    }
+
+    activateWindowById(winId) {
+        let targetWin = this._findWindowById(winId);
         if (!targetWin) return false;
 
         if (this.scratchpad && this.scratchpad.has(winId)) {
@@ -2414,6 +2454,20 @@ class CinnaWMExtension {
             this._showStackPositionOsd(state, targetWin, wsIdx, monIdx);
         }
         return true;
+    }
+
+    closeWindowById(winId) {
+        let targetWin = this._findWindowById(winId);
+        if (!targetWin) return false;
+        if (typeof targetWin.can_close === 'function' && !targetWin.can_close()) {
+            return false;
+        }
+        try {
+            targetWin.delete(global.get_current_time());
+            return true;
+        } catch (e) {
+            return false;
+        }
     }
 
     snapWindowToCustomRect(metaWindow, rect) {

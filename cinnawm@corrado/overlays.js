@@ -23,7 +23,7 @@ const {
     formatPrimaryShortcut
 } = require('./modal-utils');
 const { ActiveBorderOverlay } = require('./active-border');
-const { QuickGridOverlay, ResizeModeController, WindowSwitcherOverlay } = require('./interactive-overlays');
+const { QuickGridOverlay, ResizeModeController } = require('./interactive-overlays');
 
 /**
  * Drop Preview Overlay (shown during Mouse Drag-to-Swap / Snap)
@@ -802,6 +802,5 @@ module.exports = {
     HudOsd,
     LayoutSelectorPopup,
     QuickGridOverlay,
-    ResizeModeController,
-    WindowSwitcherOverlay
+    ResizeModeController
 };

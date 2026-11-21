@@ -896,6 +896,10 @@ print('=== 4k. Testing Extracted Modules (bsp-tree.js, window-rules.js, state-st
     assert(RuntimeConfigMod.getIpcConfig().busName === 'org.cinnawm.Service' &&
         RuntimeConfigMod.getIpcConfig().objectPath === '/org/cinnawm/Service',
         'RuntimeConfig.getIpcConfig() must provide parameterized D-Bus identifiers');
+    assert(RuntimeConfigMod.getAlbertSwitcherConfig().busName === 'org.cinnawm.AlbertSwitcher' &&
+        RuntimeConfigMod.getAlbertSwitcherConfig().objectPath === '/org/cinnawm/AlbertSwitcher' &&
+        RuntimeConfigMod.getAlbertSwitcherConfig().interfaceName === 'org.cinnawm.AlbertSwitcher',
+        'RuntimeConfig.getAlbertSwitcherConfig() must provide parameterized Albert Switcher D-Bus identifiers');
     assert(RuntimeConfigMod.getSpicesConfigFile(meta.uuid, 'test.json', false).endsWith(`cinnamon/spices/${meta.uuid}/test.json`),
         'RuntimeConfig.getSpicesConfigFile() must construct spices config paths cleanly');
     print('  [OK] RuntimeConfig parameterization & XDG path helpers');
@@ -1080,7 +1084,8 @@ print('=== 4m. Regression Tests for Fullscreen TabGroups, State Helpers, Chained
         moveFocusedToAdjacentMonitor: (step) => { ipcEvents.push(['moveMon', step]); return true; },
         focusMonitorStep: (step) => { ipcEvents.push(['focusMon', step]); return true; },
         toggleFocusedPip: () => { ipcEvents.push(['pip']); return true; },
-        openWindowSwitcher: () => { ipcEvents.push(['switcher']); },
+        activateWindowById: (id) => { ipcEvents.push(['activate', id]); return id === 42; },
+        closeWindowById: (id) => { ipcEvents.push(['close', id]); return id === 42; },
         getOpenWindowsInfo: () => ([{ id: 42, title: 'Terminal', workspace: 0, monitor: 0, floating: false }])
     };
     let svc = new IpcServiceMod.CinnaWMIpcService(mockWm);
@@ -1101,14 +1106,16 @@ print('=== 4m. Regression Tests for Fullscreen TabGroups, State Helpers, Chained
     assert(svc.MoveToWorkspace(-1) === true && svc.MoveToWorkspace(0) === false,
         'MoveToWorkspace must validate non-zero delta');
     assert(svc.MoveToNextMonitor() === true && svc.FocusNextMonitor() === true &&
-           svc.TogglePip() === true && svc.OpenWindowSwitcher() === true,
-        'Monitor, PiP, and Window Switcher action methods must delegate cleanly');
+           svc.TogglePip() === true &&
+           svc.ActivateWindow(42) === true && svc.ActivateWindow(0) === false && svc.ActivateWindow(99) === false &&
+           svc.CloseWindow(42) === true && svc.CloseWindow(-1) === false,
+        'Monitor, PiP, ActivateWindow, and CloseWindow action methods must validate and delegate cleanly');
     let openWins = JSON.parse(svc.GetOpenWindows());
     assert(Array.isArray(openWins) && openWins.length === 1 && openWins[0].id === 42,
         'GetOpenWindows must serialize open window descriptors cleanly');
     assert(svc.emitStateChanged('layout-changed') === false,
         'emitStateChanged must be a safe no-op returning false when not exported on D-Bus');
-    assert(ipcEvents.length === 16 && ipcEvents[0][2] === 12 && ipcEvents[1][1] === 'grid' && ipcEvents[4][1] === -1 && ipcEvents[5][1] === 1,
+    assert(ipcEvents.length === 18 && ipcEvents[0][2] === 12 && ipcEvents[1][1] === 'grid' && ipcEvents[4][1] === -1 && ipcEvents[5][1] === 1,
         'CinnaWMIpcService methods must delegate all arguments cleanly to CinnaWMExtension');
     print('  [OK] CinnaWMIpcService D-Bus signal XML & CLI action contract methods');
 
@@ -1200,7 +1207,8 @@ print('=== 4m. Regression Tests for Fullscreen TabGroups, State Helpers, Chained
         moveFocusedToAdjacentMonitor: () => { throw new Error('boom moveMon'); },
         focusMonitorStep: () => { throw new Error('boom focusMon'); },
         toggleFocusedPip: () => { throw new Error('boom pip'); },
-        openWindowSwitcher: () => { throw new Error('boom switcher'); },
+        activateWindowById: () => { throw new Error('boom activate'); },
+        closeWindowById: () => { throw new Error('boom close'); },
         getOpenWindowsInfo: () => { throw new Error('boom windows'); }
     };
     let safeSvc = new IpcServiceMod.CinnaWMIpcService(throwingWm);
@@ -1219,7 +1227,8 @@ print('=== 4m. Regression Tests for Fullscreen TabGroups, State Helpers, Chained
     assert(safeSvc.MoveToNextMonitor() === false, 'MoveToNextMonitor must return false on exception');
     assert(safeSvc.FocusNextMonitor() === false, 'FocusNextMonitor must return false on exception');
     assert(safeSvc.TogglePip() === false, 'TogglePip must return false on exception');
-    assert(safeSvc.OpenWindowSwitcher() === false, 'OpenWindowSwitcher must return false on exception');
+    assert(safeSvc.ActivateWindow(42) === false, 'ActivateWindow must return false on exception');
+    assert(safeSvc.CloseWindow(42) === false, 'CloseWindow must return false on exception');
     assert(safeSvc.GetOpenWindows() === '[]', 'GetOpenWindows must return "[]" on exception');
 
     let deadWin = {
@@ -1244,7 +1253,7 @@ print('=== 4m. Regression Tests for Fullscreen TabGroups, State Helpers, Chained
     );
     print('  [OK] Error-handling & exception safety (IPC fallback/validation + MetaWindow guards)');
 
-    // 9. New features 1, 2, 3, 4, 7 unit tests
+    // 9. New features 1, 3, 4, 7 unit tests
     // Feature #1: PiP Corner Geometry
     let monWa = { x: 0, y: 28, width: 1920, height: 1052 };
     let pipBR = Layouts.computeCornerRect(monWa, 'bottom-right', 25, 30, 16);
@@ -1253,22 +1262,6 @@ print('=== 4m. Regression Tests for Fullscreen TabGroups, State Helpers, Chained
         'computeCornerRect(bottom-right) must anchor window cleanly inside bottom-right corner');
     assert(pipTL.x === 16 && pipTL.y === 28 + 16,
         'computeCornerRect(top-left) must anchor window cleanly inside top-left corner');
-
-    // Feature #2: Quick Window & Tab Switcher filterWindowDescriptors
-    let swList = [
-        { id: 1, title: 'nvim main.rs', wmClass: 'Alacritty', workspace: 0, monitor: 0, floating: false, stacked: true, scratchpad: false, pip: false, minimized: false },
-        { id: 2, title: 'LoFi Radio - YouTube', wmClass: 'Chromium', workspace: 1, monitor: 0, floating: true, stacked: false, scratchpad: false, pip: true, minimized: false },
-        { id: 3, title: 'Notes.md', wmClass: 'FeatherPad', workspace: 2, monitor: 1, floating: true, stacked: false, scratchpad: true, pip: false, minimized: true }
-    ];
-    assert(WindowRulesMod.filterWindowDescriptors(swList, '').length === 3,
-        'Empty query must return all windows');
-    assert(WindowRulesMod.filterWindowDescriptors(swList, 'ws1 tab').length === 1 &&
-           WindowRulesMod.filterWindowDescriptors(swList, 'ws1 tab')[0].id === 1,
-        'Query "ws1 tab" must match stacked window on workspace 1');
-    assert(WindowRulesMod.filterWindowDescriptors(swList, 'pip radio')[0].id === 2,
-        'Query "pip radio" must match PiP video window');
-    assert(WindowRulesMod.filterWindowDescriptors(swList, 'scratchpad notes')[0].id === 3,
-        'Query "scratchpad notes" must match scratchpad note window');
 
     // Feature #3: Portrait Monitor Auto-Orientation in Master & Stack
     let portraitWa = { x: 0, y: 0, width: 1080, height: 1920 };
@@ -1297,7 +1290,7 @@ print('=== 4m. Regression Tests for Fullscreen TabGroups, State Helpers, Chained
     // Feature #7: Smart No-Border & Inactive Dimming settings schema validation
     assert(defaults.smartNoBorder === false && defaults.inactiveDimmingEnabled === false && defaults.inactiveWindowOpacityPct === 88,
         'Smart No-Border & Inactive Dimming defaults must be cleanly defined');
-    print('  [OK] Features 1, 2, 3, 4, 7 (PiP, Window Switcher, Portrait Rotation, WS Defaults, Smart No-Border / Dimming)');
+    print('  [OK] Features 1, 3, 4, 7 (PiP, Portrait Rotation, WS Defaults, Smart No-Border / Dimming)');
 }
 
 print('=== 5. Syntax-Checking All Extension Modules ===');

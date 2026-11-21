@@ -46,6 +46,7 @@ bash install.sh
 Override defaults cleanly using environment variables or CLI flags (`bash install.sh --help`):
 - `CINNAWM_EXTENSIONS_DIR`, `CINNAWM_LOCALE_DIR`, `CINNAWM_CONFIG_DIR`, `CINNAWM_DATA_DIR`, `CINNAWM_UUID`
 - `CINNAWM_DBUS_NAME`, `CINNAWM_DBUS_PATH`, `CINNAWM_APP_ID`, `CINNAWM_XLET_SETTINGS_CMD`
+- `CINNAWM_ALBERT_DBUS_NAME`, `CINNAWM_ALBERT_DBUS_PATH`, `CINNAWM_ALBERT_DBUS_INTERFACE`
 
 ---
 
@@ -112,8 +113,17 @@ Right on the Cinnamon panel badge:
 | `Super + C` | Float and center focused window |
 | `Super + G` | Open interactive **Quick Snap Grid** (`gTile` style) |
 | `Super + Y` | Toggle **Picture-in-Picture / Sticky** corner window across workspaces |
-| `Super + Tab` | Open modal **Quick Window & Tab Switcher** with live search filter |
+| `Super + Tab` | Open **CinnaWM Switcher** in Albert directly; repeat `Tab` / `Super + Tab` to cycle windows |
 | `Super + R` | Enter / exit **Modal Resize Mode** (`HJKL`/Arrows resize, `Shift` fine 2%, `0` reset ratios, `Esc`/`Enter` exit) |
+
+---
+
+## Albert Launcher Integration (`CinnaWM Switcher`)
+
+Window, Manual Tab Group, Scratchpad, and Picture-in-Picture searching/switching can be delegated to the companion native C++23/Qt6 Albert Launcher plugin repository: **[cinnawm_albert_switcher](https://github.com/corradoproietti/cinnawm_albert_switcher)**.
+
+- **Direct `Super + Tab` Switcher & Window Cycling**: Pressing `Super + Tab` invokes the parameterized D-Bus endpoint (`CINNAWM_ALBERT_DBUS_NAME` / `CINNAWM_ALBERT_DBUS_PATH` / `CINNAWM_ALBERT_DBUS_INTERFACE`, defaulting to `org.cinnawm.AlbertSwitcher`); continuing to press `Super + Tab` (or `Tab` / `Shift + Tab`) cycles across windows and switches on `Super` release or `Enter`.
+- **Native CinnaWM D-Bus Actions**: The companion plugin queries `org.cinnawm.Service` (`GetOpenWindows`, `ActivateWindow`, `CloseWindow`) via `QtDBus`.
 
 ---
 
@@ -136,7 +146,8 @@ CinnaWM exposes a typed session D-Bus service at bus name `org.cinnawm.Service`,
   - `ToggleTiling() -> (b ok)`
   - `ToggleScratchpad() -> (b ok)`
   - `TogglePip() -> (b ok)`
-  - `OpenWindowSwitcher() -> (b ok)`
+  - `ActivateWindow(i winId) -> (b ok)`
+  - `CloseWindow(i winId) -> (b ok)`
   - `MoveToWorkspace(i delta) -> (b ok)` (`-1` | `1`)
   - `MoveToNextMonitor() -> (b ok)`
   - `FocusNextMonitor() -> (b ok)`
