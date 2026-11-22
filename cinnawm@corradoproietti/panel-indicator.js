@@ -143,7 +143,8 @@ class PanelIndicatorController {
             reactive: true,
             track_hover: true,
             can_focus: true,
-            y_align: Clutter.ActorAlign.CENTER
+            x_align: Clutter.ActorAlign.FILL,
+            y_align: Clutter.ActorAlign.FILL
         });
 
         // Set up Applet-compatible delegate for Cinnamon Panel Edit Mode DND

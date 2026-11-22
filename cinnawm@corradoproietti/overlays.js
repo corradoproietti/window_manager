@@ -471,7 +471,6 @@ class LayoutSelectorPopup {
     constructor(wm) {
         this.wm = wm;
         this.isOpen = false;
-        this._openSettingsIdleId = 0;
 
         this.backdrop = new St.Widget({
             style_class: 'cinnawm-selector-backdrop',
@@ -491,19 +490,6 @@ class LayoutSelectorPopup {
             vertical: true
         });
         this.menuBox.add_child(this.itemsContainer);
-
-        this.divider = new St.Widget({
-            style_class: 'cinnawm-selector-divider',
-            x_expand: true
-        });
-        this.menuBox.add_child(this.divider);
-
-        this.footerContainer = new St.BoxLayout({
-            style_class: 'cinnawm-selector-footer',
-            vertical: true,
-            x_expand: true
-        });
-        this.menuBox.add_child(this.footerContainer);
 
         this.backdrop.add_child(this.menuBox);
         Main.uiGroup.add_child(this.backdrop);
@@ -542,7 +528,6 @@ class LayoutSelectorPopup {
 
     _rebuildItems() {
         this.itemsContainer.destroy_all_children();
-        this.footerContainer.destroy_all_children();
 
         let state = this.wm.getCurrentState();
         let activeLayoutId = state.autoTile ? state.layoutId : 'floating';
@@ -554,7 +539,7 @@ class LayoutSelectorPopup {
                     ? 'cinnawm-selector-item selected'
                     : 'cinnawm-selector-item',
                 width: 236,
-                height: 36,
+                height: 26,
                 reactive: true,
                 can_focus: true,
                 track_hover: true,
@@ -602,118 +587,6 @@ class LayoutSelectorPopup {
 
             this.itemsContainer.add_child(btn);
         }
-
-        if (typeof this.wm.toggleMonocleZoom === 'function') {
-            let isZoomed = (activeLayoutId === 'monocle');
-            let prevId = state.previousLayoutId || (this.wm.settings && this.wm.settings.defaultLayout !== 'monocle' ? this.wm.settings.defaultLayout : 'dwindle');
-            let prevMeta = Layouts.getLayoutMeta(prevId);
-            let zoomShortcut = formatPrimaryShortcut(this.wm.settings && this.wm.settings.kbToggleMonocle, 'Super + Z');
-
-            let zoomBtn = new St.Button({
-                style_class: 'cinnawm-selector-settings-btn',
-                width: 236,
-                height: 36,
-                reactive: true,
-                can_focus: true,
-                track_hover: true,
-                x_expand: true,
-                x_fill: true,
-                x_align: St.Align.START,
-                y_align: St.Align.MIDDLE
-            });
-
-            let zoomRow = new St.BoxLayout({
-                vertical: false,
-                width: 216,
-                x_expand: true,
-                y_align: Clutter.ActorAlign.CENTER
-            });
-
-            let zoomIcon = new St.Label({
-                style_class: 'cinnawm-selector-settings-icon',
-                text: isZoomed ? '↩' : '🔍',
-                y_align: Clutter.ActorAlign.CENTER
-            });
-
-            let zoomText = new St.Label({
-                style_class: 'cinnawm-selector-settings-label',
-                text: isZoomed
-                    ? `${_('Exit Zoom')} (${_(prevMeta.name)})`
-                    : `${_('Zoom / Zen Window')} (${zoomShortcut})`,
-                x_expand: true,
-                x_align: Clutter.ActorAlign.START,
-                y_align: Clutter.ActorAlign.CENTER
-            });
-
-            zoomRow.add_child(zoomIcon);
-            zoomRow.add_child(zoomText);
-            zoomBtn.set_child(zoomRow);
-
-            zoomBtn.connect('clicked', () => {
-                this.close();
-                this.wm.toggleMonocleZoom();
-            });
-
-            this.footerContainer.add_child(zoomBtn);
-        }
-
-        let settingsBtn = new St.Button({
-            style_class: 'cinnawm-selector-settings-btn',
-            width: 236,
-            height: 36,
-            reactive: true,
-            can_focus: true,
-            track_hover: true,
-            x_expand: true,
-            x_fill: true,
-            x_align: St.Align.START,
-            y_align: St.Align.MIDDLE
-        });
-
-        let settingsRow = new St.BoxLayout({
-            vertical: false,
-            width: 216,
-            x_expand: true,
-            y_align: Clutter.ActorAlign.CENTER
-        });
-
-        let gearLabel = new St.Label({
-            style_class: 'cinnawm-selector-settings-icon',
-            text: '⚙',
-            y_align: Clutter.ActorAlign.CENTER
-        });
-
-        let settingsText = new St.Label({
-            style_class: 'cinnawm-selector-settings-label',
-            text: _('Settings...'),
-            x_expand: true,
-            x_align: Clutter.ActorAlign.START,
-            y_align: Clutter.ActorAlign.CENTER
-        });
-
-        settingsRow.add_child(gearLabel);
-        settingsRow.add_child(settingsText);
-        settingsBtn.set_child(settingsRow);
-
-        settingsBtn.connect('clicked', () => {
-            this.close();
-            if (this._openSettingsIdleId) {
-                GLib.source_remove(this._openSettingsIdleId);
-            }
-            this._openSettingsIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
-                this._openSettingsIdleId = 0;
-                if (this.wm && this.wm._enabled && typeof this.wm.openSettingsDialog === 'function') {
-                    try {
-                        this.wm.openSettingsDialog(activeLayoutId);
-                    } catch (e) {
-                        global.logError(`[${this.wm.uuid || 'cinnawm'}] Failed to open settings dialog: ${e}`);
-                    }
-                }
-                return GLib.SOURCE_REMOVE;
-            });
-        });
-
-        this.footerContainer.add_child(settingsBtn);
     }
 
     toggle(anchorActor) {
@@ -738,7 +611,7 @@ class LayoutSelectorPopup {
         let [, menuW] = this.menuBox.get_preferred_width(-1);
         let [, menuH] = this.menuBox.get_preferred_height(-1);
         menuW = Math.max(210, menuW);
-        menuH = Math.max(220, menuH);
+        menuH = Math.max(120, menuH);
 
         let targetX = monitor.x + monitor.width - menuW - 12;
         let targetY = monitor.y + 38;
@@ -777,10 +650,6 @@ class LayoutSelectorPopup {
     }
 
     destroy() {
-        if (this._openSettingsIdleId) {
-            GLib.source_remove(this._openSettingsIdleId);
-            this._openSettingsIdleId = 0;
-        }
         this.close();
         if (this.backdrop) {
             this.backdrop.destroy();

@@ -100,19 +100,10 @@
     padding: 0;
 }
 
-/* Panel Indicator (Clean Icon Only, No Container Box) */
+/* Panel Indicator (Matches Cinnamon Native Full-Height Panel Applet Box) */
 .cinnawm-panel-bar {
     padding: 0 6px;
     margin: 0;
-    background-color: transparent;
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-}
-
-.cinnawm-panel-bar:hover {
-    background-color: transparent;
-    border: none;
 }
 
 .cinnawm-panel-icon {
@@ -134,7 +125,7 @@
 }
 
 .cinnawm-selector-items {
-    margin-bottom: 2px;
+    margin-bottom: 0;
 }
 
 .cinnawm-selector-item {
@@ -177,38 +168,6 @@
 
 .cinnawm-selector-check.on-accent {
     color: #ffffff;
-}
-
-.cinnawm-selector-divider {
-    height: 1px;
-    background-color: #18181b;
-    margin: 4px 2px;
-}
-
-.cinnawm-selector-footer {
-    padding-top: 0;
-}
-
-.cinnawm-selector-settings-btn {
-    background-color: transparent;
-    border: none;
-    border-radius: 4px;
-    padding: 0 10px;
-    margin: 1px 0;
-}
-
-.cinnawm-selector-settings-btn:hover {
-    background-color: #35353b;
-}
-
-.cinnawm-selector-settings-icon {
-    color: #b0b0b0;
-    margin-right: 10px;
-}
-
-.cinnawm-selector-settings-label {
-    color: #e1e1e1;
-    font-weight: 500;
 }
 
 /* Modal Resize Banner */
