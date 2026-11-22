@@ -1290,7 +1290,68 @@ print('=== 4m. Regression Tests for Fullscreen TabGroups, State Helpers, Chained
     // Feature #7: Smart No-Border & Inactive Dimming settings schema validation
     assert(defaults.smartNoBorder === false && defaults.inactiveDimmingEnabled === false && defaults.inactiveWindowOpacityPct === 88,
         'Smart No-Border & Inactive Dimming defaults must be cleanly defined');
-    print('  [OK] Features 1, 3, 4, 7 (PiP, Portrait Rotation, WS Defaults, Smart No-Border / Dimming)');
+
+    // Window maximize button layout stripping helper
+    assert(WindowRulesMod.stripMaximizeFromButtonLayout(':minimize,maximize,close') === ':minimize,close',
+        'stripMaximizeFromButtonLayout must drop maximize on standard right-side Cinnamon layout');
+    assert(WindowRulesMod.stripMaximizeFromButtonLayout('close,maximize,minimize:') === 'close,minimize:',
+        'stripMaximizeFromButtonLayout must preserve left-side ordering without trailing comma');
+    assert(WindowRulesMod.stripMaximizeFromButtonLayout('menu:minimize,maximize,close') === 'menu:minimize,close',
+        'stripMaximizeFromButtonLayout must keep left-side menu and right-side minimize,close');
+    assert(WindowRulesMod.stripMaximizeFromButtonLayout(':maximize') === ':' &&
+           WindowRulesMod.stripMaximizeFromButtonLayout(':minimize,close') === ':minimize,close',
+        'stripMaximizeFromButtonLayout must handle maximize-only and already-stripped layouts cleanly');
+
+    // StateStore originalButtonLayout persistence roundtrip (crash recovery + clean disable clearing)
+    let tmpSpicesDir = GLib.dir_make_tmp('cinnawm-state-test-XXXXXX');
+    let prevConfigDir = GLib.getenv('CINNAWM_CONFIG_DIR');
+    GLib.setenv('CINNAWM_CONFIG_DIR', tmpSpicesDir, true);
+    try {
+        let mockWm = {
+            uuid: meta.uuid,
+            _panelPosition: { panelId: null, zone: 'right', index: 0 },
+            _originalButtonLayout: ':minimize,maximize,close',
+            settings: Object.assign({}, defaults),
+            _states: new Map()
+        };
+        StateStoreMod.savePersistedStates(mockWm);
+        let reloadedWm = {
+            uuid: meta.uuid,
+            _panelPosition: { panelId: null, zone: 'right', index: 0 },
+            _originalButtonLayout: null,
+            settings: Object.assign({}, defaults),
+            _states: new Map()
+        };
+        StateStoreMod.loadPersistedStates(reloadedWm);
+        assert(reloadedWm._originalButtonLayout === ':minimize,maximize,close',
+            'StateStore must persist and reload originalButtonLayout for crash recovery');
+
+        reloadedWm._originalButtonLayout = null;
+        StateStoreMod.savePersistedStates(reloadedWm);
+        let clearedWm = {
+            uuid: meta.uuid,
+            _panelPosition: { panelId: null, zone: 'right', index: 0 },
+            _originalButtonLayout: null,
+            settings: Object.assign({}, defaults),
+            _states: new Map()
+        };
+        StateStoreMod.loadPersistedStates(clearedWm);
+        assert(clearedWm._originalButtonLayout === null,
+            'StateStore must clear originalButtonLayout once clean disable resets it');
+    } finally {
+        if (prevConfigDir !== null) {
+            GLib.setenv('CINNAWM_CONFIG_DIR', prevConfigDir, true);
+        } else {
+            GLib.unsetenv('CINNAWM_CONFIG_DIR');
+        }
+        try {
+            let cleanDir = Gio.File.new_for_path(tmpSpicesDir);
+            let rmCmd = ['rm', '-rf', cleanDir.get_path()];
+            GLib.spawn_sync(null, rmCmd, null, GLib.SpawnFlags.SEARCH_PATH, null);
+        } catch (e) {}
+    }
+
+    print('  [OK] Features 1, 3, 4, 7 + Button Layout Strip & Persistence');
 }
 
 print('=== 5. Syntax-Checking All Extension Modules ===');

@@ -192,6 +192,10 @@ class CinnaWMExtension {
         this.keybindings = new Keybindings.KeybindingManager(this);
         this.grabController = new GrabControllerModule.GrabController(this);
         this.ipcService = null;
+        this._wmPrefsSettings = null;
+        this._originalButtonLayout = null;
+        this._isSyncingButtonLayout = false;
+        this._lastAppliedButtonLayout = null;
 
         this.settings = loadDefaultSettings(meta ? meta.path : '.');
     }
@@ -242,6 +246,7 @@ class CinnaWMExtension {
         this._safeRun('panelIndicator.setup', () => this.panelIndicator.setup());
         this._safeRun('keybindings.register', () => this.keybindings.register());
         this._connectGlobalSignals();
+        this._safeRun('initButtonLayoutSync', () => this._initButtonLayoutSync());
 
         this.ipcService = new IpcService.CinnaWMIpcService(this);
         this._safeRun('ipcService.start', () => this.ipcService.start());
@@ -264,6 +269,7 @@ class CinnaWMExtension {
 
     disable() {
         this._enabled = false;
+        this._safeRun('restoreButtonLayout', () => this._restoreButtonLayout());
         this._safeRun('savePersistedStates', () => this._savePersistedStates());
 
         if (this.ipcService) {
@@ -305,6 +311,7 @@ class CinnaWMExtension {
         this._windowSignals.clear();
         this._winIdToXid.clear();
         this._safeRun('disconnectGlobalSignals', () => this._signals.disconnectAllSignals());
+        this._wmPrefsSettings = null;
 
         this._safeRun('restorePipWindows', () => this._restoreAllPipWindows());
         this.pipWindows.clear();
@@ -530,6 +537,71 @@ class CinnaWMExtension {
         if (this.panelIndicator) {
             this.panelIndicator.update();
         }
+    }
+
+    _initButtonLayoutSync() {
+        try {
+            this._wmPrefsSettings = new Gio.Settings({ schema_id: 'org.cinnamon.desktop.wm.preferences' });
+        } catch (e) {
+            this._wmPrefsSettings = null;
+            return;
+        }
+
+        let currentVal = this._wmPrefsSettings.get_string('button-layout') || ':minimize,maximize,close';
+        if (typeof this._originalButtonLayout !== 'string') {
+            this._originalButtonLayout = currentVal;
+            this._savePersistedStates();
+        }
+
+        this._signals.connect(this._wmPrefsSettings, 'changed::button-layout', () => {
+            if (this._isSyncingButtonLayout || !this._enabled || !this._wmPrefsSettings) return;
+            let externalVal = this._wmPrefsSettings.get_string('button-layout') || '';
+            if (externalVal === this._lastAppliedButtonLayout) return;
+            this._originalButtonLayout = externalVal;
+            this._lastAppliedButtonLayout = null;
+            this._savePersistedStates();
+            this._syncWindowMaximizeButton();
+        });
+    }
+
+    _setWmButtonLayout(targetLayout) {
+        if (!this._wmPrefsSettings || typeof targetLayout !== 'string') return;
+        let current = this._wmPrefsSettings.get_string('button-layout');
+        if (current === targetLayout) {
+            this._lastAppliedButtonLayout = targetLayout;
+            return;
+        }
+        this._isSyncingButtonLayout = true;
+        try {
+            this._lastAppliedButtonLayout = targetLayout;
+            this._wmPrefsSettings.set_string('button-layout', targetLayout);
+        } catch (e) {
+            global.logError(`[${this.uuid}] Failed to update window button-layout: ${e}`);
+        } finally {
+            this._isSyncingButtonLayout = false;
+        }
+    }
+
+    _syncWindowMaximizeButton() {
+        if (!this._enabled || !this._wmPrefsSettings) return;
+        if (typeof this._originalButtonLayout !== 'string') {
+            this._originalButtonLayout = this._wmPrefsSettings.get_string('button-layout') || ':minimize,maximize,close';
+        }
+        let state = this.getCurrentState();
+        let isFloating = !state || !state.autoTile || state.layoutId === 'floating';
+        let target = isFloating
+            ? this._originalButtonLayout
+            : WindowRules.stripMaximizeFromButtonLayout(this._originalButtonLayout);
+        this._setWmButtonLayout(target);
+    }
+
+    _restoreButtonLayout() {
+        if (!this._wmPrefsSettings) return;
+        if (typeof this._originalButtonLayout === 'string') {
+            this._setWmButtonLayout(this._originalButtonLayout);
+            this._originalButtonLayout = null;
+        }
+        this._lastAppliedButtonLayout = null;
     }
 
     _connectGlobalSignals() {
@@ -836,6 +908,7 @@ class CinnaWMExtension {
         if (this.activeBorder) {
             this.activeBorder.attachToWindow(focusWin);
         }
+        this._syncWindowMaximizeButton();
         this._updatePanelIndicator();
     }
 
@@ -1002,6 +1075,7 @@ class CinnaWMExtension {
         if (this.activeBorder) {
             this.activeBorder.sync();
         }
+        this._syncWindowMaximizeButton();
         this._updatePanelIndicator();
     }
 

@@ -699,6 +699,24 @@ function clearX11ResizeIncrements(wm, metaWindow) {
     }
 }
 
+/**
+ * Removes the 'maximize' button token from a Cinnamon/GTK decoration layout string
+ * while preserving user-configured button ordering and colon side separators.
+ */
+function stripMaximizeFromButtonLayout(layoutStr) {
+    if (typeof layoutStr !== 'string') return ':minimize,close';
+    const cleanSide = (side) => side
+        .split(',')
+        .map(tok => tok.trim())
+        .filter(tok => tok.length > 0 && tok !== 'maximize')
+        .join(',');
+    let colonIdx = layoutStr.indexOf(':');
+    if (colonIdx === -1) {
+        return cleanSide(layoutStr);
+    }
+    return `${cleanSide(layoutStr.slice(0, colonIdx))}:${cleanSide(layoutStr.slice(colonIdx + 1))}`;
+}
+
 module.exports = {
     parseCustomRules,
     getCachedCustomRules,
@@ -708,6 +726,7 @@ module.exports = {
     arrangePopupOrDialogWindow,
     recheckLatePopupOrDialog,
     clearX11ResizeIncrements,
+    stripMaximizeFromButtonLayout,
     safeRaiseWindow,
     safeActivateWindow,
     safeApplyWindowFrame

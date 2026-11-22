@@ -86,6 +86,10 @@ function loadPersistedStates(wm) {
             };
         }
 
+        if (typeof data.originalButtonLayout === 'string') {
+            wm._originalButtonLayout = data.originalButtonLayout;
+        }
+
         if (data.customSettings && typeof data.customSettings === 'object') {
             for (let [k, v] of Object.entries(data.customSettings)) {
                 if (Object.prototype.hasOwnProperty.call(wm.settings, k) && !k.startsWith('kb')) {
@@ -209,12 +213,16 @@ function savePersistedStates(wm) {
                 customSettings[k] = v;
             }
         }
-        let payload = JSON.stringify({
+        let payloadObj = {
             version: 2,
             panelPosition: wm._panelPosition,
             customSettings,
             states: statesObj
-        }, null, 2);
+        };
+        if (typeof wm._originalButtonLayout === 'string') {
+            payloadObj.originalButtonLayout = wm._originalButtonLayout;
+        }
+        let payload = JSON.stringify(payloadObj, null, 2);
         GLib.file_set_contents(getPersistedStatesPath(wm.uuid), payload);
     } catch (e) {
         if (typeof global !== 'undefined' && global.logError) {
